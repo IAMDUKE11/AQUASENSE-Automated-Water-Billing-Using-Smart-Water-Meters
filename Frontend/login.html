@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - AquaFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        
+        .tab-active-customer {
+            background-color: white;
+            color: #0284c7;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-active-admin {
+            background-color: white;
+            color: #4f46e5;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-cyan-100 min-h-screen">
+    <div class="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-4 bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-white/20">
+            <div class="text-center">
+                <div class="mx-auto h-16 w-16 bg-sky-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-feather="droplet" class="h-10 w-10 text-sky-600"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    Sign in
+                </h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Choose your account type to continue
+                </p>
+            </div>
+
+            <div class="text-center mb-6">
+                <p class="text-lg font-bold text-sky-800">AquaFlow Billing System</p>
+                <p class="text-xs font-medium text-sky-600 uppercase tracking-widest">
+                    IoT-Enabled Water Management
+                </p>
+            </div>
+
+            <div class="flex p-1 bg-gray-100 rounded-xl mb-6" role="group">
+                <button id="customerBtn" type="button" class="flex-1 py-2 px-4 text-sm font-bold rounded-lg transition-all duration-200">
+            Customer
+          </button>
+                <button id="adminBtn" type="button" class="flex-1 py-2 px-4 text-sm font-bold rounded-lg transition-all duration-200">
+            Admin
+          </button>
+            </div>
+
+            <form id="customerLoginForm" class="mt-4 space-y-5 hidden">
+                <div>
+                    <label for="accountNumber" class="block text-sm font-bold text-gray-700">Account Number</label
+            >
+            <input
+              id="accountNumber"
+              type="text"
+              placeholder="C-2024-001"
+              required
+              class="mt-1 block w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white"
+            />
+          </div>
+
+          <div>
+            <label
+              for="meterNumber"
+              class="block text-sm font-bold text-gray-700"
+              >Meter Number</label
+            >
+            <input
+              id="meterNumber"
+              type="text"
+              placeholder="WM-001-2024"
+              required
+              class="mt-1 block w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white"
+            />
+          </div>
+
+          <div>
+            <label
+              for="securityPin"
+              class="block text-sm font-bold text-gray-700"
+              >Security PIN</label
+            >
+            <input
+              id="securityPin"
+              type="password"
+              placeholder="••••"
+              required
+              class="mt-1 block w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 transition transform hover:-translate-y-0.5"
+          >
+            Login as Customer
+          </button>
+
+          <div class="mt-4 p-3 bg-sky-50 rounded-lg border border-sky-100">
+            <p class="text-[10px] font-bold text-sky-700 uppercase mb-1">
+              Demo Access Credentials:
+            </p>
+            <p class="text-[10px] text-sky-600">
+              Acc: C-2024-001 | Meter: WM-001-2024 | PIN: 1234
+            </p>
+            <p class="text-[10px] text-sky-600">
+              Acc: C-2024-002 | Meter: WM-002-2024 | PIN: 5678
+            </p>
+            <p class="text-[10px] text-sky-600">
+              Acc: C-2024-003 | Meter: WM-003-2024 | PIN: 9012
+            </p>
+          </div>
+        </form>
+
+        <form id="adminLoginForm" class="mt-4 space-y-5 hidden">
+          <div>
+            <label
+              for="adminEmail"
+              class="block text-sm font-bold text-gray-700"
+              >Admin Email</label
+            >
+            <input
+              id="adminEmail"
+              type="email"
+              placeholder="admin@gmail.com"
+              required
+              class="mt-1 block w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+            />
+          </div>
+
+          <div>
+            <label
+              for="adminPassword"
+              class="block text-sm font-bold text-gray-700"
+              >Password</label
+            >
+            <input
+              id="adminPassword"
+              type="password"
+              placeholder="••••"
+              required
+              class="mt-1 block w-full border border-gray-300 rounded-lg py-3 px-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition transform hover:-translate-y-0.5"
+          >
+            Login as Admin
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Initialize Icons
+      feather.replace();
+
+      // Data: Demo Credentials Array
+      const demoAccounts = [
+        { account: "C-2024-001", meter: "WM-001-2024", pin: "1234" },
+        { account: "C-2024-002", meter: "WM-002-2024", pin: "5678" },
+        { account: "C-2024-003", meter: "WM-003-2024", pin: "9012" },
+      ];
+
+      // Elements
+      const customerBtn = document.getElementById("customerBtn");
+      const adminBtn = document.getElementById("adminBtn");
+      const customerForm = document.getElementById("customerLoginForm");
+      const adminForm = document.getElementById("adminLoginForm");
+
+      // Toggle Switch Logic
+      customerBtn.addEventListener("click", () => {
+        customerBtn.classList.add("tab-active-customer");
+        adminBtn.classList.remove("tab-active-admin");
+        customerForm.classList.remove("hidden");
+        adminForm.classList.add("hidden");
+      });
+
+      adminBtn.addEventListener("click", () => {
+        adminBtn.classList.add("tab-active-admin");
+        customerBtn.classList.remove("tab-active-customer");
+        adminForm.classList.remove("hidden");
+        customerForm.classList.add("hidden");
+      });
+
+      // CUSTOMER LOGIN LOGIC
+      customerForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const accInput = document.getElementById("accountNumber").value;
+        const meterInput = document.getElementById("meterNumber").value;
+        const pinInput = document.getElementById("securityPin").value;
+
+        // Check if input matches any demo account
+        const validAccount = demoAccounts.find(
+          (acc) =>
+            acc.account === accInput &&
+            acc.meter === meterInput &&
+            acc.pin === pinInput,
+        );
+
+        if (validAccount) {
+          // Success - Save account to session for dashboard use (optional)
+          sessionStorage.setItem(
+            "currentCustomer",
+            JSON.stringify(validAccount),
+          );
+          window.location.href = "customerdashboard.html";
+        } else {
+          alert(
+            "Invalid Credentials! Please check the demo access info below the form.",
+          );
+        }
+      });
+
+      // ADMIN LOGIN LOGIC
+      adminForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const adminEmail = document.getElementById("adminEmail").value;
+        const adminPassword = document.getElementById("adminPassword").value;
+
+        // Admin Validation (Muzi Access)
+        if (adminEmail === "muzi@gmail.com" && adminPassword === "1234") {
+          window.location.href = "admindashboard.html";
+        } else {
+          alert("Access Denied! Incorrect admin email or password.");
+        }
+      });
+
+      // Set Default View to Customer
+      customerBtn.click();
+    </script>
+  </body>
+</html>

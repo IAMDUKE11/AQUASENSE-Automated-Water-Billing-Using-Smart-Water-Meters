@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AquaSense — Control Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#050B14;--ink2:#080F1C;--ink3:#0C1826;--ink4:#101F30;--ink5:#152438;
+  --blue:#0057FF;--blue2:#1A6BFF;--blue3:#4D90FF;
+  --arc:#00D4FF;--arc2:#66E5FF;--teal:#00E5C0;--green:#00F598;
+  --amber:#FFC107;--red:#FF3355;--red2:#FF6680;--purple:#7C3AED;
+  --white:#FFFFFF;--t1:#E6F0FF;--t2:#7A9CC4;--t3:#3A5878;--t4:#1E3A54;
+  --g1:rgba(255,255,255,0.04);--g2:rgba(255,255,255,0.07);--g3:rgba(255,255,255,0.11);
+  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.13);
+  --sb:240px;--mono:'JetBrains Mono',monospace;--head:'Inter',sans-serif;--body:'Inter',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--body);background:var(--ink);color:var(--t1);display:flex;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-feature-settings:"cv02","cv03","cv04","cv11";text-rendering:optimizeLegibility}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 50% at 30% 0%,rgba(0,87,255,.14) 0%,transparent 55%),
+  radial-gradient(ellipse 50% 60% at 85% 90%,rgba(0,212,255,.09) 0%,transparent 55%),
+  radial-gradient(ellipse 25% 25% at 15% 80%,rgba(124,58,237,.06) 0%,transparent 50%);}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sb);background:rgba(5,11,20,.97);backdrop-filter:blur(24px);border-right:1px solid var(--bd2);display:flex;flex-direction:column;z-index:200;}
+.sb-brand{padding:24px 20px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.sb-logo{width:38px;height:38px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--arc));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 6px 20px rgba(0,87,255,.4)}
+.sb-title{font-family:var(--head);font-size:15px;font-weight:800}
+.sb-title span{color:var(--arc)}
+.sb-sub{font-size:10px;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 10px;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--t4);text-transform:uppercase;padding:0 10px;margin:14px 0 4px}
+.sbi{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;transition:all .18s;font-size:13px;font-weight:600;color:var(--t2);position:relative;border:none;background:transparent;width:100%;text-align:left;font-family:var(--body)}
+.sbi:hover{background:var(--g1);color:var(--t1)}
+.sbi.active{background:rgba(0,87,255,.15);color:var(--arc)}
+.sbi.active::before{content:'';position:absolute;left:-1px;top:50%;transform:translateY(-50%);width:3px;height:18px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--blue),var(--arc))}
+.sbi-icon{font-size:15px;flex-shrink:0;width:18px;text-align:center}
+.sb-badge{margin-left:auto;min-width:18px;height:18px;border-radius:9px;background:var(--red);font-size:10px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.sb-badge.blue{background:var(--blue2)}
+.sb-badge.green{background:var(--teal);color:#000}
+.sb-badge.off{background:var(--g2);color:var(--t3)}
+.sb-footer{padding:14px;border-top:1px solid var(--bd)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;background:var(--g1);cursor:pointer}
+.sb-av{width:34px;height:34px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,var(--ink5),var(--blue));display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:13px;font-weight:800;border:1px solid var(--bd2)}
+.sb-un{font-size:13px;font-weight:700}
+.sb-ur{font-size:10px;color:var(--t3)}
+.sb-out{margin-top:8px;width:100%;padding:9px;border-radius:10px;border:none;background:rgba(255,51,85,.08);border:1px solid rgba(255,51,85,.15);color:var(--red2);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--body);transition:all .2s}
+.sb-out:hover{background:rgba(255,51,85,.18)}
+.main{margin-left:var(--sb);flex:1;height:100vh;overflow-y:auto;position:relative;z-index:1;scrollbar-width:thin;scrollbar-color:var(--ink5) transparent}
+.main::-webkit-scrollbar{width:4px}
+.main::-webkit-scrollbar-thumb{background:var(--ink5);border-radius:4px}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(5,11,20,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.vt{font-family:var(--head);font-size:18px;font-weight:800;letter-spacing:-.3px}
+.vc{font-size:11px;color:var(--t3);font-family:var(--mono);margin-top:2px}
+.tb-r{display:flex;align-items:center;gap:10px}
+.schip{display:flex;align-items:center;gap:7px;background:var(--g1);border:1px solid var(--bd2);border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:sdot 2s infinite}
+.sdot.off{background:var(--red);box-shadow:0 0 8px var(--red);animation:none}
+@keyframes sdot{0%,100%{opacity:1}50%{opacity:.4}}
+.tchip{font-family:var(--mono);font-size:12px;color:var(--t3);background:var(--g1);border:1px solid var(--bd);border-radius:8px;padding:7px 12px}
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:10px;padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--body);transition:all .2s;border:none}
+.btn.pri{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 14px rgba(0,87,255,.3)}
+.btn.pri:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(0,87,255,.5)}
+.btn.sec{background:var(--g1);border:1px solid var(--bd2);color:var(--t2)}
+.btn.sec:hover{color:var(--t1);background:var(--g2)}
+.btn.del{background:rgba(255,51,85,.1);border:1px solid rgba(255,51,85,.2);color:var(--red2)}
+.btn.del:hover{background:rgba(255,51,85,.2)}
+.btn.sml{padding:7px 14px;font-size:11px;border-radius:9px}
+.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.page{display:none;padding:24px;animation:pIn .3s ease}
+.page.active{display:block}
+@keyframes pIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+.g32{display:grid;grid-template-columns:3fr 2fr;gap:18px}
+.mb{margin-bottom:18px}
+.card{background:var(--g1);border:1px solid var(--bd);border-radius:16px;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:var(--bd2)}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--bd)}
+.ct{font-family:var(--head);font-size:14px;font-weight:700}
+.cs{font-size:11px;color:var(--t3);margin-top:2px}
+.cb{padding:18px 20px}
+.cb0{padding:0}
+.stile{background:var(--g1);border:1px solid var(--bd);border-radius:16px;padding:20px;transition:all .22s;position:relative;overflow:hidden}
+.stile:hover{border-color:var(--bd2);transform:translateY(-2px)}
+.st-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.st-lbl{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase}
+.st-ico{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.st-num{font-family:var(--head);font-size:32px;font-weight:800;color:var(--t1);letter-spacing:-1px;line-height:1;margin-bottom:4px}
+.st-meta{font-size:11px;color:var(--t3)}
+.iot-bar{border-radius:16px;background:linear-gradient(135deg,var(--ink3) 0%,var(--ink4) 60%,#0A1830 100%);border:1px solid rgba(0,212,255,.15);padding:22px 28px;margin-bottom:18px;position:relative;overflow:hidden}
+.iot-bar::before{content:'';position:absolute;top:-50px;right:-50px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.1) 0%,transparent 65%)}
+.iot-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.live-pill{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--arc);text-transform:uppercase}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--arc);box-shadow:0 0 10px var(--arc);animation:ldot 1.5s infinite}
+@keyframes ldot{0%,100%{opacity:1}50%{opacity:.35}}
+.iot-mid{font-family:var(--mono);font-size:11px;color:var(--t3);margin-left:auto;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:4px 12px}
+.iot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.iot-stat .lbl{font-size:9px;font-weight:700;letter-spacing:1.3px;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
+.iot-stat .val{font-family:var(--mono);font-size:22px;font-weight:600;color:#fff;line-height:1}
+.iot-stat .val.c{color:var(--arc)}
+.iot-stat .unit{font-size:12px;color:var(--t2);margin-left:4px;font-family:var(--body)}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{padding:9px 14px;text-align:left;font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--t3);text-transform:uppercase;border-bottom:1px solid var(--bd)}
+.tbl td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);transition:background .12s}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tr:last-child td{border:none}
+.tw{max-height:340px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--ink5) transparent}
+.tw::-webkit-scrollbar{width:3px}
+.tw::-webkit-scrollbar-thumb{background:var(--ink5)}
+.mono{font-family:var(--mono);font-size:12px}
+.tag{display:inline-flex;align-items:center;background:rgba(0,87,255,.12);border:1px solid rgba(0,87,255,.2);color:var(--blue3);border-radius:7px;padding:2px 9px;font-family:var(--mono);font-size:11px;font-weight:600}
+.grn{color:var(--green);font-weight:700}
+.rd{color:var(--red)}
+.am{color:var(--amber)}
+.fbar{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bd)}
+.sbox{flex:1;position:relative}
+.sbox input{width:100%;background:var(--g1);border:1px solid var(--bd);border-radius:10px;padding:9px 14px 9px 36px;font-size:13px;color:var(--t1);font-family:var(--body);outline:none;transition:all .2s}
+.sbox input::placeholder{color:var(--t3)}
+.sbox input:focus{border-color:var(--blue)}
+.sbox::before{content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+.fsel{background:var(--g1);border:1px solid var(--bd);border-radius:10px;padding:9px 14px;font-size:13px;color:var(--t2);font-family:var(--body);outline:none;cursor:pointer}
+.fsel option{background:var(--ink3)}
+.sbadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;border-radius:100px;padding:4px 10px}
+.sbadge.active{background:rgba(0,245,152,.1);color:var(--green);border:1px solid rgba(0,245,152,.2)}
+.sbadge.inactive{background:rgba(255,193,7,.1);color:var(--amber);border:1px solid rgba(255,193,7,.2)}
+.sbadge.fault{background:rgba(255,51,85,.1);color:var(--red2);border:1px solid rgba(255,51,85,.2)}
+.sbadge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.modal-ov{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:24px}
+.modal-ov.open{display:flex}
+.modal{background:var(--ink3);border:1px solid var(--bd2);border-radius:20px;padding:28px;width:100%;max-width:500px;box-shadow:0 20px 70px rgba(0,0,0,.6);animation:mIn .25s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.mt{font-family:var(--head);font-size:17px;font-weight:800}
+.mc{width:32px;height:32px;border-radius:10px;border:1px solid var(--bd);background:var(--g1);color:var(--t2);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.mc:hover{color:var(--red);border-color:rgba(255,51,85,.3)}
+.mf{margin-bottom:14px}
+.ml{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
+.mi,.ms,.mta{width:100%;background:var(--g1);border:1.5px solid var(--bd);border-radius:11px;padding:12px 14px;font-size:14px;color:var(--t1);font-family:var(--body);outline:none;transition:all .2s;-webkit-appearance:none}
+.mi:focus,.ms:focus,.mta:focus{border-color:var(--blue);background:var(--g2)}
+.mi::placeholder,.mta::placeholder{color:var(--t3)}
+.ms option{background:var(--ink3)}
+.mta{resize:vertical;min-height:80px}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mact{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.chart-wrap{height:200px;position:relative}
+.chart-sm{height:150px;position:relative}
+.ai{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.ai:last-child{border-bottom:none}
+.ai-ic{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.ai-ic.hi{background:rgba(255,51,85,.12);color:var(--red)}
+.ai-ic.md{background:rgba(255,193,7,.12);color:var(--amber)}
+.ai-t{font-size:13px;font-weight:700;margin-bottom:2px}
+.ai-m{font-size:11px;color:var(--t2);line-height:1.4}
+.ai-tm{font-size:10px;color:var(--t3);margin-top:3px;font-family:var(--mono)}
+.tariff-hero{background:linear-gradient(135deg,var(--ink4) 0%,var(--ink5) 100%);border:1px solid rgba(0,212,255,.12);border-radius:18px;padding:26px 30px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden}
+.tariff-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.08) 0%,transparent 65%)}
+.th-lbl{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--t3);text-transform:uppercase;margin-bottom:5px}
+.th-rate{font-family:var(--head);font-size:42px;font-weight:800;color:var(--arc);letter-spacing:-2px;line-height:1}
+.th-unit{font-size:13px;color:var(--t2);margin-top:3px}
+.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.tier-card{background:var(--g1);border:1.5px solid var(--bd);border-radius:14px;padding:18px;transition:all .2s;cursor:pointer}
+.tier-card:hover{border-color:var(--bd2);background:var(--g2)}
+.tier-card.sel{border-color:var(--arc);background:rgba(0,212,255,.06)}
+.tc-n{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--t3);text-transform:uppercase;margin-bottom:8px}
+.tc-r{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--t1);margin-bottom:3px}
+.tc-rg{font-size:11px;color:var(--t3)}
+.tc-b{margin-top:10px;display:inline-flex;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(0,229,192,.1);color:var(--teal)}
+.mr{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:12px;background:var(--g1);border:1px solid var(--bd);margin-bottom:9px;transition:all .2s}
+.mr:hover{border-color:var(--bd2)}
+.mrav{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.mrn{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.mrid{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.stsel{background:transparent;border:1px solid var(--bd2);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;font-family:var(--body);cursor:pointer;outline:none;transition:all .2s;margin-left:auto}
+.stsel.active{color:var(--green);border-color:rgba(0,245,152,.25)}
+.stsel.inactive{color:var(--amber);border-color:rgba(255,193,7,.25)}
+.stsel.fault{color:var(--red2);border-color:rgba(255,51,85,.25)}
+.stsel option{background:var(--ink4);color:var(--t1)}
+.rr{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .15s}
+.rr:hover{background:var(--g1)}
+.rr:last-child{border-bottom:none}
+.rr-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}
+.rr-t{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:2px}
+.rr-d{font-size:11px;color:var(--t3)}
+.rr-b{margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:var(--g2);color:var(--t2);border:1px solid var(--bd)}
+.ss-sec{margin-bottom:24px}
+.ss-t{font-family:var(--head);font-size:14px;font-weight:700;color:var(--t1);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.srow{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.srow:last-child{border-bottom:none}
+.sr-ic{width:36px;height:36px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;margin-right:12px}
+.sr-l{font-size:14px;font-weight:600;color:var(--t1)}
+.sr-s{font-size:12px;color:var(--t3);margin-top:2px}
+.sr-c{margin-left:auto}
+.toggle{width:46px;height:25px;border-radius:100px;position:relative;cursor:pointer;transition:background .2s;background:var(--g3);border:none}
+.toggle.on{background:var(--teal)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:white;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:transform .2s}
+.toggle.on::after{transform:translateX(21px)}
+.srinput{background:var(--g1);border:1px solid var(--bd);border-radius:9px;padding:7px 12px;font-size:13px;color:var(--t1);font-family:var(--body);outline:none;width:130px;text-align:right;transition:border-color .2s}
+.srinput:focus{border-color:var(--blue)}
+.save-bar{position:sticky;bottom:0;background:rgba(5,11,20,.95);backdrop-filter:blur(12px);border-top:1px solid var(--bd2);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.save-hint{font-size:12px;color:var(--t3)}
+.th-history-row{display:flex;align-items:center;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px}
+.th-history-row:last-child{border-bottom:none}
+.pbar{height:5px;background:var(--g2);border-radius:100px;overflow:hidden;margin-top:8px}
+.pbar-f{height:100%;border-radius:100px;transition:width .6s ease}
+.ni{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.ni:last-child{border-bottom:none}
+.ni-d{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.ni-d.u{background:var(--arc);box-shadow:0 0 5px var(--arc)}
+.ni-d.r{background:var(--t4)}
+.ni-b{font-size:12px;color:var(--t2);line-height:1.4}
+.ni-t{font-size:10px;color:var(--t3);margin-top:3px;font-family:var(--mono)}
+.empty{text-align:center;padding:36px;color:var(--t3);font-size:13px}
+.empty .ei{font-size:30px;margin-bottom:8px;opacity:.4}
+.leak-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:400;background:linear-gradient(90deg,rgba(255,51,85,.96),rgba(160,10,30,.96));backdrop-filter:blur(8px);padding:12px 22px;align-items:center;gap:14px;animation:lf 1s infinite}
+.leak-banner.show{display:flex}
+@keyframes lf{0%,100%{opacity:1}50%{opacity:.8}}
+.lb-m{flex:1;font-size:13px;font-weight:700;color:#fff}
+.lb-d{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--body)}
+.toast-s{position:fixed;bottom:22px;right:22px;z-index:600;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;background:var(--ink4);border:1px solid var(--bd2);border-radius:13px;padding:13px 16px;min-width:260px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:tIn .3s ease;font-size:13px;font-weight:500}
+.toast.ok{border-color:rgba(0,245,152,.25)}
+.toast.er{border-color:rgba(255,51,85,.25)}
+.toast.wn{border-color:rgba(255,193,7,.25)}
+@keyframes tIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fu{opacity:0;transform:translateY(14px);animation:fu .4s ease forwards}
+@keyframes fu{to{opacity:1;transform:translateY(0)}}
+.fu:nth-child(1){animation-delay:.04s}.fu:nth-child(2){animation-delay:.08s}
+.fu:nth-child(3){animation-delay:.12s}.fu:nth-child(4){animation-delay:.16s}
+</style>
+</head>
+<body>
+
+<div class="leak-banner" id="leakBanner">
+  <span>⚠️</span>
+  <div class="lb-m">HIGH USAGE — Meter <span id="leakM">--</span> — Inspect immediately.</div>
+  <button class="lb-d" onclick="dismissLeak()">Dismiss</button>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-ov" id="custModal">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="custMT">Add Customer</div><button class="mc" onclick="cm('custModal')">✕</button></div>
+    <div class="mrow"><div class="mf"><div class="ml">Full Name</div><input class="mi" id="cf-n" placeholder="John Smith"/></div><div class="mf"><div class="ml">Account No</div><input class="mi" id="cf-a" placeholder="C-2024-004"/></div></div>
+    <div class="mrow"><div class="mf"><div class="ml">Meter ID</div><input class="mi" id="cf-m" placeholder="WM-004-2024"/></div><div class="mf"><div class="ml">Phone</div><input class="mi" id="cf-p" placeholder="+263 7X XXX XXXX"/></div></div>
+    <div class="mf"><div class="ml">Address</div><input class="mi" id="cf-ad" placeholder="123 Main Street, Harare"/></div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">Tariff Tier</div><select class="ms" id="cf-t"><option value="Residential">Residential</option><option value="Commercial">Commercial</option><option value="Industrial">Industrial</option></select></div>
+      <div class="mf"><div class="ml">Status</div><select class="ms" id="cf-s"><option value="active">Active</option><option value="inactive">Inactive</option><option value="fault">Fault</option></select></div>
+    </div>
+    <div class="mact"><button class="btn sec" onclick="cm('custModal')">Cancel</button><button class="btn pri" onclick="saveCust()">💾 Save</button></div>
+  </div>
+</div>
+
+<!-- TARIFF MODAL -->
+<div class="modal-ov" id="tariffModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">Edit Tariff Tier</div><button class="mc" onclick="cm('tariffModal')">✕</button></div>
+    <div class="mf"><div class="ml">Tier Name</div><input class="mi" id="tf-n" placeholder="Residential"/></div>
+    <div class="mrow"><div class="mf"><div class="ml">Rate ($/L)</div><input class="mi" id="tf-r" type="number" step="0.0001" placeholder="0.0010"/></div><div class="mf"><div class="ml">Fixed Charge ($)</div><input class="mi" id="tf-f" type="number" step="0.01" placeholder="25.00"/></div></div>
+    <div class="mrow"><div class="mf"><div class="ml">Min Usage (L)</div><input class="mi" id="tf-mn" type="number" placeholder="0"/></div><div class="mf"><div class="ml">Max Usage (L)</div><input class="mi" id="tf-mx" type="number" placeholder="5000"/></div></div>
+    <div class="mf"><div class="ml">Notes</div><textarea class="mta" id="tf-nt" placeholder="Applicable to..."></textarea></div>
+    <div class="mact"><button class="btn sec" onclick="cm('tariffModal')">Cancel</button><button class="btn pri" onclick="saveTariff()">💾 Update</button></div>
+  </div>
+</div>
+
+<!-- ALERT MODAL -->
+<div class="modal-ov" id="alertModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">Send Manual Alert</div><button class="mc" onclick="cm('alertModal')">✕</button></div>
+    <div class="mf"><div class="ml">Alert Type</div><select class="ms" id="am-t"><option>High Usage</option><option>Leak Detected</option><option>Payment Due</option><option>Maintenance</option><option>Service Disruption</option></select></div>
+    <div class="mf"><div class="ml">Target Meter</div><select class="ms" id="am-m"><option value="WM-001-2024">WM-001-2024</option><option value="WM-002-2024">WM-002-2024</option><option value="WM-003-2024">WM-003-2024</option><option value="ALL">All Meters</option></select></div>
+    <div class="mf"><div class="ml">Message</div><textarea class="mta" id="am-msg" placeholder="Describe the alert..."></textarea></div>
+    <div class="mact"><button class="btn sec" onclick="cm('alertModal')">Cancel</button><button class="btn pri" onclick="sendAlert()">📢 Send</button></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">💧</div>
+    <div><div class="sb-title">Aqua<span>Sense</span></div><div class="sb-sub">Control Centre</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <button class="sbi active" onclick="nav('overview',this)"><span class="sbi-icon">📊</span>Dashboard</button>
+    <button class="sbi" onclick="nav('customers',this)"><span class="sbi-icon">👥</span>Customers<span class="sb-badge green" id="nbC">0</span></button>
+    <button class="sbi" onclick="nav('readings',this)"><span class="sbi-icon">📡</span>Readings<span class="sb-badge blue" id="nbR">0</span></button>
+    <div class="sb-sec">Operations</div>
+    <button class="sbi" onclick="nav('alerts',this)"><span class="sbi-icon">🔔</span>Alerts<span class="sb-badge off" id="nbA">0</span></button>
+    <button class="sbi" onclick="nav('tariff',this)"><span class="sbi-icon">💵</span>Tariff Management</button>
+    <button class="sbi" onclick="nav('reports',this)"><span class="sbi-icon">📋</span>Reports</button>
+    <div class="sb-sec">System</div>
+    <button class="sbi" onclick="nav('settings',this)"><span class="sbi-icon">⚙️</span>Settings</button>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user"><div class="sb-av">A</div><div><div class="sb-un">Admin</div><div class="sb-ur">System Administrator</div></div></div>
+    <button class="sb-out" onclick="logout()">⏻ Sign Out</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div><div class="vt" id="viewTitle">Dashboard</div><div class="vc" id="viewCrumb">aquasense / overview</div></div>
+    <div class="tb-r">
+      <div class="schip"><div class="sdot" id="sDot"></div><span id="sTxt">Online</span></div>
+      <div class="tchip" id="tClock">--:--:--</div>
+      <button class="btn pri" id="refreshBtn" onclick="fetchAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6"/><path d="M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-overview">
+    <div class="iot-bar fu">
+      <div class="iot-head"><div class="live-pill"><div class="ldot"></div>Live IoT Feed</div><div class="iot-mid" id="iotM">METER: WM-001-2024</div></div>
+      <div class="iot-grid">
+        <div class="iot-stat"><div class="lbl">Flow Rate</div><div class="val" id="ovF">--<span class="unit">L/min</span></div></div>
+        <div class="iot-stat"><div class="lbl">Total Liters</div><div class="val" id="ovL">--<span class="unit">L</span></div></div>
+        <div class="iot-stat"><div class="lbl">Session Bill</div><div class="val c" id="ovB">$--</div></div>
+        <div class="iot-stat"><div class="lbl">Last Reading</div><div class="val" style="font-size:13px;padding-top:6px" id="ovT">--</div></div>
+      </div>
+    </div>
+    <div class="g4 mb fu">
+      <div class="stile"><div class="st-top"><div class="st-lbl">Customers</div><div class="st-ico" style="background:rgba(0,87,255,.12)">👥</div></div><div class="st-num" id="stC">--</div><div class="st-meta">Registered</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Readings</div><div class="st-ico" style="background:rgba(0,245,152,.1)">📡</div></div><div class="st-num" id="stR">--</div><div class="st-meta">Total records</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Revenue</div><div class="st-ico" style="background:rgba(0,212,255,.1)">💰</div></div><div class="st-num" id="stRev">$--</div><div class="st-meta">All sessions</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Alerts</div><div class="st-ico" style="background:rgba(255,51,85,.1)">🚨</div></div><div class="st-num" id="stA">--</div><div class="st-meta">Active</div></div>
+    </div>
+    <div class="g21 mb fu">
+      <div class="card">
+        <div class="ch"><div><div class="ct">Flow Rate Over Time</div><div class="cs">Last 20 readings</div></div></div>
+        <div class="cb"><div class="chart-wrap"><canvas id="flowChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Recent Alerts</div><span class="sbadge inactive" id="ovAB" style="font-size:10px">0</span></div>
+        <div class="cb0" style="padding:6px 14px;max-height:240px;overflow-y:auto" id="ovAL"><div class="empty"><div class="ei">🔕</div>No alerts</div></div>
+      </div>
+    </div>
+    <div class="g2 mb fu">
+      <div class="card">
+        <div class="ch"><div><div class="ct">Recent Readings</div><div class="cs">Top 8</div></div><button class="btn sml sec" onclick="nav('readings',document.querySelectorAll('.sbi')[2])">View All</button></div>
+        <div class="cb0"><div class="tw"><table class="tbl"><thead><tr><th>Meter</th><th>Flow</th><th>Liters</th><th>Bill</th></tr></thead><tbody id="ovRB"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody></table></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div><div class="ct">Meter Status</div><div class="cs">Device control</div></div></div>
+        <div class="cb" id="ovMS">Loading…</div>
+      </div>
+    </div>
+    <div class="card mb fu">
+      <div class="ch"><div class="ct">Activity Log</div><button class="btn sml sec" onclick="clearLog()">Clear</button></div>
+      <div class="cb0" style="padding:4px 16px;max-height:220px;overflow-y:auto"><div id="logList"></div></div>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="page" id="page-customers">
+    <div class="g4 mb fu">
+      <div class="stile"><div class="st-top"><div class="st-lbl">Total</div><div class="st-ico" style="background:rgba(0,87,255,.12)">👥</div></div><div class="st-num" id="cT">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Active</div><div class="st-ico" style="background:rgba(0,245,152,.1)">✅</div></div><div class="st-num" id="cA">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Inactive</div><div class="st-ico" style="background:rgba(255,193,7,.1)">⏸️</div></div><div class="st-num" id="cI">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Fault</div><div class="st-ico" style="background:rgba(255,51,85,.1)">⚠️</div></div><div class="st-num" id="cF">--</div></div>
+    </div>
+    <div class="card mb fu">
+      <div class="ch"><div><div class="ct">Customer Registry</div><div class="cs">All accounts</div></div><button class="btn pri" onclick="om('custModal')">＋ Add Customer</button></div>
+      <div class="fbar">
+        <div class="sbox"><input type="text" placeholder="Search name or meter…" id="cSrch" oninput="filterC()"/></div>
+        <select class="fsel" id="cSF" onchange="filterC()"><option value="">All Status</option><option>active</option><option>inactive</option><option>fault</option></select>
+        <button class="btn sml sec" onclick="exportCSV()">⬇ CSV</button>
+      </div>
+      <div class="cb0"><div class="tw"><table class="tbl"><thead><tr><th>Customer</th><th>Account</th><th>Meter</th><th>Address</th><th>Tier</th><th>Status</th><th>Actions</th></tr></thead><tbody id="cTB"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- READINGS -->
+  <div class="page" id="page-readings">
+    <div class="g4 mb fu">
+      <div class="stile"><div class="st-top"><div class="st-lbl">Total</div><div class="st-ico" style="background:rgba(0,87,255,.12)">📡</div></div><div class="st-num" id="rT">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Today</div><div class="st-ico" style="background:rgba(0,212,255,.1)">📅</div></div><div class="st-num" id="rTd">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Avg Flow</div><div class="st-ico" style="background:rgba(0,245,152,.1)">📊</div></div><div class="st-num" id="rAF">--</div><div class="st-meta">L/min</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Total Volume</div><div class="st-ico" style="background:rgba(124,58,237,.12)">💧</div></div><div class="st-num" id="rTV">--</div><div class="st-meta">Litres</div></div>
+    </div>
+    <div class="card mb fu">
+      <div class="ch"><div><div class="ct">All Water Readings</div><div class="cs">Complete sensor history</div></div><button class="btn sml sec" onclick="exportCSV()">⬇ CSV</button></div>
+      <div class="fbar">
+        <div class="sbox"><input type="text" placeholder="Filter by meter ID…" id="rSrch" oninput="filterR()"/></div>
+        <select class="fsel" id="rMF" onchange="filterR()"><option value="">All Meters</option></select>
+        <select class="fsel" id="rSrt" onchange="filterR()"><option value="newest">Newest First</option><option value="oldest">Oldest First</option><option value="highest">Highest Flow</option></select>
+      </div>
+      <div class="cb0"><div class="tw"><table class="tbl"><thead><tr><th>Meter</th><th>Flow (L/min)</th><th>Liters</th><th>Bill</th><th>Date &amp; Time</th></tr></thead><tbody id="rTB"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="page" id="page-alerts">
+    <div class="g4 mb fu">
+      <div class="stile"><div class="st-top"><div class="st-lbl">Total</div><div class="st-ico" style="background:rgba(255,51,85,.1)">🚨</div></div><div class="st-num" id="aT">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">High Usage</div><div class="st-ico" style="background:rgba(255,51,85,.1)">⚠️</div></div><div class="st-num" id="aH">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Unresolved</div><div class="st-ico" style="background:rgba(255,193,7,.1)">🔓</div></div><div class="st-num" id="aU">--</div></div>
+      <div class="stile"><div class="st-top"><div class="st-lbl">Resolved</div><div class="st-ico" style="background:rgba(0,245,152,.1)">✅</div></div><div class="st-num" id="aRes">0</div></div>
+    </div>
+    <div class="g21 mb fu">
+      <div class="card">
+        <div class="ch"><div><div class="ct">Alert Log</div><div class="cs">All system alerts</div></div><button class="btn pri sml" onclick="om('alertModal')">📢 Send Alert</button></div>
+        <div class="fbar">
+          <div class="sbox"><input type="text" placeholder="Search alerts…" id="aSrch" oninput="filterA()"/></div>
+          <select class="fsel" id="aTF" onchange="filterA()"><option value="">All Types</option><option>High Usage</option><option>Leak Detected</option><option>Maintenance</option></select>
+        </div>
+        <div class="cb0"><div class="tw"><table class="tbl"><thead><tr><th>Type</th><th>Meter</th><th>Message</th><th>Time</th><th>Action</th></tr></thead><tbody id="aTB"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody></table></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Alert Breakdown</div></div>
+        <div class="cb"><div class="chart-sm"><canvas id="alertChart"></canvas></div></div>
+        <div class="cb" style="padding-top:0" id="aSumm"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARIFF -->
+  <div class="page" id="page-tariff">
+    <div class="tariff-hero fu">
+      <div>
+        <div class="th-lbl">Current Base Rate</div>
+        <div class="th-rate" id="trBase">$0.0010</div>
+        <div class="th-unit">per litre · USD</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Last Updated</div>
+        <div style="font-family:var(--mono);font-size:13px;color:var(--t2)" id="trUpdated">--</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:10px">Fixed Service</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700" id="trFixed">$25.00</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:6px">VAT</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700" id="trVAT">8.5%</div>
+      </div>
+    </div>
+    <div class="tier-grid fu" id="tierGrid"></div>
+    <div class="g2 mb fu">
+      <div class="card">
+        <div class="ch"><div><div class="ct">Rate Change History</div><div class="cs">Audit trail</div></div></div>
+        <div class="cb0" id="trHistory"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Revenue Projection</div><div class="cs">At current tariff</div></div>
+        <div class="cb"><div class="chart-sm"><canvas id="projChart"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card mb fu">
+      <div class="ch"><div><div class="ct">Quick Rate Adjustment</div><div class="cs">Apply immediately to all meters</div></div></div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+          <div class="mf"><div class="ml" style="font-size:10px;margin-bottom:5px">Base Rate ($/L)</div><input class="mi" id="qa-r" value="0.0010" type="number" step="0.0001"/></div>
+          <div class="mf"><div class="ml" style="font-size:10px;margin-bottom:5px">Fixed Charge ($)</div><input class="mi" id="qa-f" value="25.00" type="number" step="0.01"/></div>
+          <div class="mf"><div class="ml" style="font-size:10px;margin-bottom:5px">VAT (%)</div><input class="mi" id="qa-v" value="8.5" type="number" step="0.1"/></div>
+          <div class="mf"><div class="ml" style="font-size:10px;margin-bottom:5px">Effective Date</div><input class="mi" id="qa-d" type="date"/></div>
+        </div>
+        <div class="mf"><div class="ml" style="font-size:10px;margin-bottom:5px">Reason</div><input class="mi" id="qa-rs" placeholder="e.g. Annual tariff review 2026"/></div>
+        <div style="margin-top:14px;display:flex;gap:10px">
+          <button class="btn pri" onclick="applyRate()">⚡ Apply Rate</button>
+          <button class="btn sec" onclick="previewImpact()">👁 Preview Impact</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="page" id="page-reports">
+    <div class="g2 mb fu">
+      <div class="card"><div class="ch"><div><div class="ct">Monthly Revenue</div><div class="cs">Last 6 months</div></div></div><div class="cb"><div class="chart-wrap"><canvas id="revChart"></canvas></div></div></div>
+      <div class="card"><div class="ch"><div><div class="ct">Daily Consumption</div><div class="cs">Last 14 days</div></div></div><div class="cb"><div class="chart-wrap"><canvas id="conChart"></canvas></div></div></div>
+    </div>
+    <div class="g21 mb fu">
+      <div class="card">
+        <div class="ch"><div><div class="ct">Per-Meter Usage</div><div class="cs">This month</div></div></div>
+        <div class="cb0" id="mBreak"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">Export Reports</div></div>
+        <div class="cb0">
+          <div class="rr" onclick="exportReport('readings')"><div class="rr-ic" style="background:rgba(0,87,255,.1)">📡</div><div><div class="rr-t">Water Readings</div><div class="rr-d">All sensor data as CSV</div></div><span class="rr-b">CSV</span></div>
+          <div class="rr" onclick="exportReport('customers')"><div class="rr-ic" style="background:rgba(0,245,152,.1)">👥</div><div><div class="rr-t">Customer Registry</div><div class="rr-d">All accounts</div></div><span class="rr-b">CSV</span></div>
+          <div class="rr" onclick="exportReport('billing')"><div class="rr-ic" style="background:rgba(0,212,255,.1)">💰</div><div><div class="rr-t">Billing Summary</div><div class="rr-d">Monthly per meter</div></div><span class="rr-b">CSV</span></div>
+          <div class="rr" onclick="exportReport('alerts')"><div class="rr-ic" style="background:rgba(255,51,85,.1)">🚨</div><div><div class="rr-t">Alert Log</div><div class="rr-d">All system alerts</div></div><span class="rr-b">CSV</span></div>
+          <div class="rr" onclick="exportReport('audit')"><div class="rr-ic" style="background:rgba(124,58,237,.12)">🔍</div><div><div class="rr-t">Audit Trail</div><div class="rr-d">Admin action log</div></div><span class="rr-b">CSV</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div style="max-width:740px;padding-bottom:80px">
+      <div class="ss-sec fu">
+        <div class="ss-t">🌐 API &amp; Connectivity</div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,87,255,.1)">🔗</div><div><div class="sr-l">API Base URL</div><div class="sr-s">Backend endpoint</div></div><div class="sr-c"><input class="srinput" style="width:200px" id="cfg-api" value="https://localhost:7235"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,212,255,.1)">📡</div><div><div class="sr-l">Serial Port</div><div class="sr-s">NodeMCU USB port</div></div><div class="sr-c"><input class="srinput" id="cfg-port" value="COM11"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,245,152,.1)">⚡</div><div><div class="sr-l">Baud Rate</div><div class="sr-s">Serial speed</div></div><div class="sr-c"><input class="srinput" id="cfg-baud" value="115200"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(124,58,237,.12)">🔄</div><div><div class="sr-l">Refresh Interval (s)</div><div class="sr-s">Auto-refresh frequency</div></div><div class="sr-c"><input class="srinput" id="cfg-ref" value="30" type="number"/></div></div>
+      </div>
+      <div class="ss-sec fu">
+        <div class="ss-t">💧 Sensor Configuration</div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,87,255,.1)">📏</div><div><div class="sr-l">Calibration Factor</div><div class="sr-s">YF-S201 default: 7.5 pulses/L/min</div></div><div class="sr-c"><input class="srinput" id="cfg-cal" value="7.5" type="number" step="0.1"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,212,255,.1)">⏱</div><div><div class="sr-l">Min Save Interval (s)</div><div class="sr-s">Min time between DATA saves</div></div><div class="sr-c"><input class="srinput" id="cfg-si" value="30" type="number"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(255,193,7,.1)">🌡</div><div><div class="sr-l">Leak Threshold (L/min)</div><div class="sr-s">Triggers high-usage alert</div></div><div class="sr-c"><input class="srinput" id="cfg-lk" value="200" type="number"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(255,51,85,.1)">⏰</div><div><div class="sr-l">Continuous Flow Alert (min)</div><div class="sr-s">Alert if flow continues uninterrupted</div></div><div class="sr-c"><input class="srinput" id="cfg-cf" value="60" type="number"/></div></div>
+      </div>
+      <div class="ss-sec fu">
+        <div class="ss-t">🔔 Notifications</div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(255,51,85,.1)">🚨</div><div><div class="sr-l">Leak Alert Audio</div><div class="sr-s">Beep on leak detection</div></div><div class="sr-c"><button class="toggle on" onclick="this.classList.toggle('on')"></button></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,212,255,.1)">📧</div><div><div class="sr-l">Email Notifications</div><div class="sr-s">Send email on critical alerts</div></div><div class="sr-c"><button class="toggle" onclick="this.classList.toggle('on')"></button></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,245,152,.1)">📱</div><div><div class="sr-l">SMS Alerts</div><div class="sr-s">SMS on high-usage events</div></div><div class="sr-c"><button class="toggle" onclick="this.classList.toggle('on')"></button></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(124,58,237,.12)">🔁</div><div><div class="sr-l">Auto-resolve Alerts</div><div class="sr-s">Clear alerts after 24h</div></div><div class="sr-c"><button class="toggle on" onclick="this.classList.toggle('on')"></button></div></div>
+      </div>
+      <div class="ss-sec fu">
+        <div class="ss-t">🗄 Database</div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,87,255,.1)">💾</div><div><div class="sr-l">Database Path</div><div class="sr-s">Firebird .FDB location</div></div><div class="sr-c"><input class="srinput" style="width:200px" id="cfg-db" value="WATER_METER.FDB"/></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,245,152,.1)">🧹</div><div><div class="sr-l">Auto-purge Old Readings</div><div class="sr-s">Delete readings older than 12 months</div></div><div class="sr-c"><button class="toggle" onclick="this.classList.toggle('on')"></button></div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(124,58,237,.12)">📦</div><div><div class="sr-l">Backup on Export</div><div class="sr-s">DB backup before each export</div></div><div class="sr-c"><button class="toggle on" onclick="this.classList.toggle('on')"></button></div></div>
+      </div>
+      <div class="ss-sec fu">
+        <div class="ss-t">ℹ️ System Info</div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,87,255,.1)">🔢</div><div><div class="sr-l">System Version</div></div><div class="sr-c" style="font-family:var(--mono);font-size:13px;color:var(--t3)">v2.0.0</div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,212,255,.1)">🏗</div><div><div class="sr-l">Backend</div></div><div class="sr-c" style="font-family:var(--mono);font-size:13px;color:var(--t3)">ASP.NET Core 8 / .NET 8</div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(0,245,152,.1)">⏱</div><div><div class="sr-l">System Uptime</div></div><div class="sr-c" style="font-family:var(--mono);font-size:13px;color:var(--green)" id="uptime">--</div></div>
+        <div class="srow"><div class="sr-ic" style="background:rgba(255,51,85,.1)">🗑</div><div><div class="sr-l">Clear All Data</div><div class="sr-s">⚠️ Irreversible</div></div><div class="sr-c"><button class="btn sml del" onclick="if(confirm('Delete all data?'))toast('Requires API endpoint','wn','🗑')">Clear</button></div></div>
+      </div>
+    </div>
+    <div class="save-bar"><span class="save-hint">Settings saved locally</span><button class="btn pri" onclick="toast('Settings saved','ok','💾')">💾 Save Settings</button></div>
+  </div>
+
+</main>
+<div class="toast-s" id="toastS"></div>
+
+<script>
+const API='https://localhost:7235/api';
+let AR=[],AU=[],AA=[],LD=false,SS=Date.now();
+const tariff={base:0.001,fixed:25,vat:8.5,updated:new Date().toLocaleDateString(),
+  tiers:[{name:'Residential',rate:0.001,min:0,max:5000,badge:'Standard'},{name:'Commercial',rate:0.0015,min:5001,max:20000,badge:'Business'},{name:'Industrial',rate:0.002,min:20001,max:999999,badge:'Enterprise'}],
+  history:[{date:'01 Jan 2026',by:'Admin',old:'$0.0008',new:'$0.0010',reason:'Annual review'},{date:'01 Jul 2025',by:'Admin',old:'$0.0006',new:'$0.0008',reason:'Inflation'}]};
+const custDB=[
+  {name:'John Smith',account:'C-2024-001',meter:'WM-001-2024',phone:'+263 77 100 0001',address:'12 Mbare Rd, Harare',tier:'Residential',status:'active'},
+  {name:'Jane Doe',account:'C-2024-002',meter:'WM-002-2024',phone:'+263 77 200 0002',address:'45 Bulawayo Ave, Harare',tier:'Residential',status:'active'},
+  {name:'Acme Corp',account:'C-2024-003',meter:'WM-003-2024',phone:'+263 77 300 0003',address:'8 Industrial Rd, Harare',tier:'Commercial',status:'inactive'},
+];
+const mS={'WM-001-2024':'active','WM-002-2024':'active','WM-003-2024':'inactive'};
+const cols=['#0057FF','#00B4D8','#7C3AED'];
+let log=[];
+let fChart=null,aChart=null,pChart=null,resolvedCount=0;
+
+setInterval(()=>{
+  document.getElementById('tClock').textContent=new Date().toLocaleTimeString();
+  const u=Math.floor((Date.now()-SS)/1000);const h=Math.floor(u/3600),m=Math.floor((u%3600)/60),s=u%60;
+  const el=document.getElementById('uptime');if(el)el.textContent=h+'h '+m+'m '+s+'s';
+},1000);
+
+const vmeta={overview:['Dashboard','aquasense / overview'],customers:['Customers','aquasense / customers'],readings:['Readings','aquasense / readings'],alerts:['Alerts','aquasense / alerts'],tariff:['Tariff Management','aquasense / tariff'],reports:['Reports','aquasense / reports'],settings:['Settings','aquasense / settings']};
+function nav(v,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sbi').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+v).classList.add('active');
+  if(btn)btn.classList.add('active');
+  const[t,c]=vmeta[v]||['--','--'];
+  document.getElementById('viewTitle').textContent=t;
+  document.getElementById('viewCrumb').textContent=c;
+  if(v==='reports')renderReports();
+  if(v==='tariff')renderTariff();
+}
+
+function toast(msg,type='ok',icon='✅'){
+  const s=document.getElementById('toastS');
+  const t=document.createElement('div');t.className='toast '+type;
+  t.innerHTML='<span>'+icon+'</span><span>'+msg+'</span>';s.appendChild(t);
+  addLog(msg);setTimeout(()=>t.remove(),3800);
+}
+let logItems=[];
+function addLog(msg){logItems.unshift({msg,time:new Date().toLocaleTimeString()});renderLog();}
+function renderLog(){const el=document.getElementById('logList');if(!el)return;
+  el.innerHTML=logItems.slice(0,10).map(l=>'<div class="ni"><div class="ni-d u"></div><div><div class="ni-b">'+l.msg+'</div><div class="ni-t">'+l.time+'</div></div></div>').join('');}
+function clearLog(){logItems=[];renderLog();toast('Log cleared','ok','🧹');}
+
+function om(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// CHARTS
+function initCharts(){
+  const fc=document.getElementById('flowChart');
+  if(fc){fChart=new Chart(fc.getContext('2d'),{type:'line',data:{labels:[],datasets:[{label:'Flow',data:[],borderColor:'#1A6BFF',borderWidth:2.5,backgroundColor:(c)=>{const g=c.chart.ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(26,107,255,.22)');g.addColorStop(1,'rgba(26,107,255,0)');return g;},pointBackgroundColor:'#1A6BFF',pointRadius:4,pointHoverRadius:7,fill:true,tension:0.45}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0C1826',borderColor:'rgba(255,255,255,.08)',borderWidth:1,callbacks:{label:c=>' '+Number(c.raw).toFixed(2)+' L/min'}}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#3A5878',font:{size:10,family:'JetBrains Mono'},maxTicksLimit:8}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#3A5878',font:{size:10}},beginAtZero:true}}}});}
+  const ac=document.getElementById('alertChart');
+  if(ac){aChart=new Chart(ac.getContext('2d'),{type:'doughnut',data:{labels:['High Usage','Maintenance','Other'],datasets:[{data:[0,0,0],backgroundColor:['rgba(255,51,85,.8)','rgba(255,193,7,.8)','rgba(0,87,255,.8)'],borderWidth:0,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'68%'}});}
+}
+
+function renderReports(){
+  setTimeout(()=>{
+    const now=new Date();
+    const rv=document.getElementById('revChart');
+    if(rv&&!rv._ci){rv._ci=true;
+      const ms=Array.from({length:6},(_,i)=>{const d=new Date(now);d.setMonth(now.getMonth()-5+i);return d.toLocaleString('default',{month:'short'});});
+      new Chart(rv.getContext('2d'),{type:'bar',data:{labels:ms,datasets:[{data:ms.map((_,i)=>{const d=new Date(now);d.setMonth(now.getMonth()-5+i);return AR.filter(r=>{const rd=new Date(r.readingTime??r.ReadingTime);return rd.getMonth()===d.getMonth()&&rd.getFullYear()===d.getFullYear();}).reduce((s,r)=>s+(r.bill??r.Bill??0)*(1+tariff.vat/100)+tariff.fixed,0);}),backgroundColor:'rgba(0,87,255,.7)',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#3A5878',font:{size:10,family:'JetBrains Mono'}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#3A5878'},beginAtZero:true}}}});
+    }
+    const cc=document.getElementById('conChart');
+    if(cc&&!cc._ci){cc._ci=true;
+      const days=Array.from({length:14},(_,i)=>{const d=new Date(now);d.setDate(now.getDate()-13+i);return d;});
+      new Chart(cc.getContext('2d'),{type:'line',data:{labels:days.map(d=>d.toLocaleDateString([],{month:'short',day:'numeric'})),datasets:[{data:days.map(d=>AR.filter(r=>new Date(r.readingTime??r.ReadingTime).toDateString()===d.toDateString()).reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0)),borderColor:'#00E5C0',borderWidth:2,pointRadius:3,fill:true,tension:0.4,backgroundColor:(c)=>{const g=c.chart.ctx.createLinearGradient(0,0,0,150);g.addColorStop(0,'rgba(0,229,192,.18)');g.addColorStop(1,'rgba(0,229,192,0)');return g;}}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#3A5878',font:{size:9},maxTicksLimit:7}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#3A5878',font:{size:9}},beginAtZero:true}}}});
+    }
+    const bl=document.getElementById('mBreak');
+    if(bl){
+      const meters=[...new Set(AR.map(r=>r.meterId??r.MeterId))];
+      const tot=AR.reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0)||1;
+      bl.innerHTML=meters.map((m,i)=>{const v=AR.filter(r=>(r.meterId??r.MeterId)===m).reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);const p=Math.min(100,(v/tot)*100);
+        return '<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.03)"><div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span class="tag">'+m+'</span><span style="font-family:var(--mono);font-size:12px;color:var(--t2)">'+v.toFixed(2)+' L · '+p.toFixed(0)+'%</span></div><div class="pbar"><div class="pbar-f" style="width:'+p+'%;background:'+['linear-gradient(90deg,#0057FF,#00D4FF)','linear-gradient(90deg,#00B4D8,#00E5C0)','linear-gradient(90deg,#7C3AED,#0057FF)'][i%3]+'"></div></div></div>';
+      }).join('')||'<div class="empty"><div class="ei">📊</div>No data</div>';
+    }
+  },80);
+}
+
+function renderTariff(){
+  document.getElementById('trBase').textContent='$'+tariff.base.toFixed(4);
+  document.getElementById('trFixed').textContent='$'+tariff.fixed.toFixed(2);
+  document.getElementById('trVAT').textContent=tariff.vat+'%';
+  document.getElementById('trUpdated').textContent=tariff.updated;
+  document.getElementById('qa-r').value=tariff.base;
+  document.getElementById('qa-f').value=tariff.fixed;
+  document.getElementById('qa-v').value=tariff.vat;
+  document.getElementById('qa-d').value=new Date().toISOString().split('T')[0];
+  document.getElementById('tierGrid').innerHTML=tariff.tiers.map((t,i)=>'<div class="tier-card'+(i===0?' sel':'')+'" onclick="selTier(this,'+i+')"><div class="tc-n">'+t.name+'</div><div class="tc-r">$'+t.rate.toFixed(4)+'<span style="font-size:12px;color:var(--t2);font-family:var(--body)">/L</span></div><div class="tc-rg">'+t.min.toLocaleString()+'–'+(t.max===999999?'∞':t.max.toLocaleString())+' L/month</div><div style="margin-top:10px;display:flex;gap:8px"><div class="tc-b">'+t.badge+'</div><button class="btn sml sec" onclick="event.stopPropagation();editTier('+i+')" style="margin-left:auto">Edit</button></div></div>').join('');
+  document.getElementById('trHistory').innerHTML=tariff.history.map(h=>'<div class="th-history-row"><span style="flex:1;font-family:var(--mono);color:var(--t3)">'+h.date+'</span><span style="flex:1;color:var(--t2)">'+h.by+'</span><span style="flex:1;font-family:var(--mono);color:var(--red2)">'+h.old+'</span><span style="flex:1;font-family:var(--mono);color:var(--green)">'+h.new+'</span><span style="font-size:11px;color:var(--t3)">'+h.reason+'</span></div>').join('');
+  setTimeout(()=>{const pc=document.getElementById('projChart');if(pc&&!pc._ci){pc._ci=true;const ms=['Jan','Feb','Mar','Apr','May','Jun'];const mv=AR.reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0)/Math.max(1,new Date().getMonth()+1);new Chart(pc.getContext('2d'),{type:'bar',data:{labels:ms,datasets:[{data:ms.map((_,i)=>(mv*(1+i*.05)*tariff.base+tariff.fixed).toFixed(2)),backgroundColor:'rgba(0,212,255,.6)',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#3A5878',font:{size:9}}},y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#3A5878',font:{size:9}},beginAtZero:true}}}});}},80);
+}
+function selTier(el,i){document.querySelectorAll('.tier-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function editTier(i){const t=tariff.tiers[i];document.getElementById('tf-n').value=t.name;document.getElementById('tf-r').value=t.rate;document.getElementById('tf-mn').value=t.min;document.getElementById('tf-mx').value=t.max===999999?'':t.max;document.getElementById('tf-f').value=tariff.fixed;om('tariffModal');}
+function saveTariff(){const r=parseFloat(document.getElementById('tf-r').value);if(isNaN(r)||r<=0){toast('Invalid rate','er','❌');return;}tariff.base=r;tariff.updated=new Date().toLocaleDateString();cm('tariffModal');renderTariff();toast('Tariff updated','ok','💵');}
+function applyRate(){const r=parseFloat(document.getElementById('qa-r').value),f=parseFloat(document.getElementById('qa-f').value),v=parseFloat(document.getElementById('qa-v').value);if(isNaN(r)||isNaN(f)||isNaN(v)){toast('Fill all fields','er','❌');return;}const old=tariff.base;tariff.history.unshift({date:new Date().toLocaleDateString(),by:'Admin',old:'$'+old.toFixed(4),new:'$'+r.toFixed(4),reason:document.getElementById('qa-rs').value||'Manual'});tariff.base=r;tariff.fixed=f;tariff.vat=v;tariff.updated=new Date().toLocaleDateString();renderTariff();toast('Rate updated to $'+r.toFixed(4)+'/L','ok','⚡');}
+function previewImpact(){const r=parseFloat(document.getElementById('qa-r').value)||tariff.base,f=parseFloat(document.getElementById('qa-f').value)||tariff.fixed,v=parseFloat(document.getElementById('qa-v').value)||tariff.vat;const tv=AR.reduce((s,r2)=>s+(r2.totalLiters??r2.TotalLiters??0),0);toast('Projected revenue ~$'+((tv*r+f)*(1+v/100)).toFixed(2),'ok','👁');}
+
+function renderCust(data){
+  document.getElementById('cT').textContent=data.length;document.getElementById('cA').textContent=data.filter(c=>c.status==='active').length;
+  document.getElementById('cI').textContent=data.filter(c=>c.status==='inactive').length;document.getElementById('cF').textContent=data.filter(c=>c.status==='fault').length;
+  const tb=document.getElementById('cTB');if(!data.length){tb.innerHTML='<tr><td colspan="7" class="empty">No customers</td></tr>';return;}
+  tb.innerHTML=data.map((c,i)=>{const init=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();const col=cols[i%cols.length];
+    return '<tr><td><div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:10px;background:'+col+'22;color:'+col+';display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:13px;font-weight:800;flex-shrink:0">'+init+'</div><div><div style="font-size:13px;font-weight:700">'+c.name+'</div><div style="font-size:11px;color:var(--t3)">'+c.phone+'</div></div></div></td><td class="mono">'+c.account+'</td><td><span class="tag">'+c.meter+'</span></td><td style="font-size:12px;color:var(--t2)">'+c.address+'</td><td><span style="font-size:11px;padding:3px 10px;border-radius:100px;background:var(--g2);color:var(--t2)">'+c.tier+'</span></td><td><span class="sbadge '+c.status+'">'+c.status+'</span></td><td><div style="display:flex;gap:6px"><button class="btn sml sec" onclick="editC('+i+')">Edit</button><button class="btn sml del" onclick="suspC('+i+')">Suspend</button></div></td></tr>';
+  }).join('');
+}
+function filterC(){const q=document.getElementById('cSrch').value.toLowerCase(),sf=document.getElementById('cSF').value;renderCust(custDB.filter(c=>(!q||(c.name.toLowerCase().includes(q)||c.meter.toLowerCase().includes(q)))&&(!sf||c.status===sf)));}
+function editC(i){const c=custDB[i];document.getElementById('cf-n').value=c.name;document.getElementById('cf-m').value=c.meter;document.getElementById('cf-a').value=c.account;document.getElementById('cf-ad').value=c.address;document.getElementById('cf-t').value=c.tier;document.getElementById('cf-s').value=c.status;document.getElementById('custMT').textContent='Edit Customer';om('custModal');}
+function suspC(i){custDB[i].status='inactive';renderCust(custDB);toast('Customer suspended','wn','⏸️');}
+function saveCust(){const n=document.getElementById('cf-n').value.trim(),m=document.getElementById('cf-m').value.trim();if(!n||!m){toast('Name & Meter required','er','❌');return;}const ex=custDB.findIndex(c=>c.meter===m);const obj={name:n,account:document.getElementById('cf-a').value,meter:m,phone:document.getElementById('cf-p').value,address:document.getElementById('cf-ad').value,tier:document.getElementById('cf-t').value,status:document.getElementById('cf-s').value};if(ex>=0)custDB[ex]=obj;else custDB.push(obj);mS[m]=obj.status;cm('custModal');renderCust(custDB);toast(ex>=0?'Customer updated':'Customer added','ok','✅');}
+
+function renderRdgPage(data){
+  const today=data.filter(r=>new Date(r.readingTime??r.ReadingTime).toDateString()===new Date().toDateString());
+  const af=data.length?(data.reduce((s,r)=>s+(r.flowRate??r.FlowRate??0),0)/data.length).toFixed(2):'--';
+  const tv=data.reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0).toFixed(2);
+  document.getElementById('rT').textContent=data.length;document.getElementById('rTd').textContent=today.length;
+  document.getElementById('rAF').textContent=af;document.getElementById('rTV').textContent=tv;
+  const mf=document.getElementById('rMF');const ms=[...new Set(data.map(r=>r.meterId??r.MeterId))];
+  mf.innerHTML='<option value="">All Meters</option>'+ms.map(m=>'<option value="'+m+'">'+m+'</option>').join('');
+  renderRdgTable(data);
+}
+function filterR(){const q=document.getElementById('rSrch').value.toLowerCase(),mf=document.getElementById('rMF').value,srt=document.getElementById('rSrt').value;
+  let d=AR.filter(r=>(!q||(r.meterId??r.MeterId??'').toLowerCase().includes(q))&&(!mf||(r.meterId??r.MeterId)===mf));
+  if(srt==='newest')d.sort((a,b)=>new Date(b.readingTime??b.ReadingTime)-new Date(a.readingTime??a.ReadingTime));
+  else if(srt==='oldest')d.sort((a,b)=>new Date(a.readingTime??a.ReadingTime)-new Date(b.readingTime??b.ReadingTime));
+  else if(srt==='highest')d.sort((a,b)=>(b.flowRate??b.FlowRate??0)-(a.flowRate??a.FlowRate??0));
+  renderRdgTable(d);
+}
+function renderRdgTable(data){
+  const tb=document.getElementById('rTB');if(!data.length){tb.innerHTML='<tr><td colspan="5" class="empty">No readings</td></tr>';return;}
+  tb.innerHTML=data.slice(0,50).map(r=>'<tr><td><span class="tag">'+(r.meterId??r.MeterId??'--')+'</span></td><td class="mono">'+Number(r.flowRate??r.FlowRate??0).toFixed(2)+'</td><td class="mono">'+Number(r.totalLiters??r.TotalLiters??0).toFixed(2)+'</td><td class="mono grn">$'+Number(r.bill??r.Bill??0).toFixed(2)+'</td><td style="font-size:11px;color:var(--t3)">'+new Date(r.readingTime??r.ReadingTime).toLocaleString()+'</td></tr>').join('');
+}
+
+function renderAltsPage(data){
+  const hi=data.filter(a=>(a.alertType??a.AlertType)==='High Usage').length;
+  document.getElementById('aT').textContent=data.length;document.getElementById('aH').textContent=hi;
+  document.getElementById('aU').textContent=data.length-resolvedCount;document.getElementById('aRes').textContent=resolvedCount;
+  if(aChart){aChart.data.datasets[0].data=[hi,data.filter(a=>(a.alertType??a.AlertType)==='Maintenance').length,Math.max(0,data.length-hi)];aChart.update();}
+  const sl=document.getElementById('aSumm');if(sl)sl.innerHTML='<div style="display:flex;flex-direction:column;gap:7px"><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--red2)">● High Usage</span><span class="mono">'+hi+'</span></div><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--amber)">● Maintenance</span><span class="mono">'+data.filter(a=>(a.alertType??a.AlertType)==='Maintenance').length+'</span></div><div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--blue3)">● Other</span><span class="mono">'+Math.max(0,data.length-hi)+'</span></div></div>';
+  renderAltsTable(data);
+}
+function filterA(){
+  const q=document.getElementById('aSrch').value.toLowerCase(),tf=document.getElementById('aTF').value;
+  renderAltsTable(AA.filter(a=>(!q||((a.message??a.Message??'').toLowerCase().includes(q)||(a.meterId??a.MeterId??'').toLowerCase().includes(q)))&&(!tf||(a.alertType??a.AlertType)===tf)));
+}
+function renderAltsTable(data){
+  const tb=document.getElementById('aTB');if(!data.length){tb.innerHTML='<tr><td colspan="5" class="empty">No alerts</td></tr>';return;}
+  const s=[...data].sort((a,b)=>new Date(b.createdAt??b.CreatedAt)-new Date(a.createdAt??a.CreatedAt));
+  tb.innerHTML=s.slice(0,40).map(a=>'<tr><td><span class="sbadge '+((a.alertType??a.AlertType)==='High Usage'?'fault':'inactive')+'">'+(a.alertType??a.AlertType??'Alert')+'</span></td><td><span class="tag">'+(a.meterId??a.MeterId??'--')+'</span></td><td style="font-size:12px;color:var(--t2)">'+(a.message??a.Message??'')+'</td><td style="font-size:11px;color:var(--t3);font-family:var(--mono)">'+new Date(a.createdAt??a.CreatedAt).toLocaleString()+'</td><td><button class="btn sml sec" onclick="resolveA(this)">Resolve</button></td></tr>').join('');
+}
+function resolveA(btn){btn.closest('tr').style.opacity='.4';btn.textContent='✓';btn.disabled=true;resolvedCount++;document.getElementById('aRes').textContent=resolvedCount;toast('Alert resolved','ok','✅');}
+function sendAlert(){const t=document.getElementById('am-t').value,m=document.getElementById('am-m').value,msg=document.getElementById('am-msg').value.trim();if(!msg){toast('Message required','er','❌');return;}cm('alertModal');toast('Alert sent to '+m,'ok','📢');fetchAll();}
+
+function renderMS(users){
+  const el=document.getElementById('ovMS');
+  const src=users.length>0?users.map((u,i)=>({name:u.name??u.Name,id:u.meterId??u.MeterId,col:cols[i%cols.length]})):[{name:'John Smith',id:'WM-001-2024',col:'#0057FF'},{name:'Jane Doe',id:'WM-002-2024',col:'#00B4D8'},{name:'Acme Corp',id:'WM-003-2024',col:'#7C3AED'}];
+  el.innerHTML=src.map(m=>{const st=mS[m.id]||'active';const init=m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return '<div class="mr"><div class="mrav" style="background:'+m.col+'22;color:'+m.col+'">'+init+'</div><div style="flex:1;min-width:0"><div class="mrn">'+m.name+'</div><div class="mrid">'+m.id+'</div></div><select class="stsel '+st+'" onchange="changeMS(\''+m.id+'\',this)"><option value="active"'+(st==='active'?' selected':'')+'>● Active</option><option value="inactive"'+(st==='inactive'?' selected':'')+'>◐ Inactive</option><option value="fault"'+(st==='fault'?' selected':'')+'>✕ Fault</option></select></div>';
+  }).join('');
+}
+function changeMS(id,sel){mS[id]=sel.value;sel.className='stsel '+sel.value;toast('Meter '+id+' → '+sel.value,sel.value==='fault'?'er':sel.value==='inactive'?'wn':'ok',sel.value==='fault'?'⚠️':sel.value==='inactive'?'⏸️':'✅');}
+
+async function fetchAll(){
+  const btn=document.getElementById('refreshBtn');btn.classList.add('spin');
+  try{
+    const[rd,us,al,lt]=await Promise.all([
+      fetch(API+'/water/all').then(r=>r.json()),
+      fetch(API+'/users/all').then(r=>r.json()),
+      fetch(API+'/alerts/all').then(r=>r.json()),
+      fetch(API+'/water/latest').then(r=>r.ok?r.json():null).catch(()=>null),
+    ]);
+    AR=rd;AU=us;AA=al;
+    document.getElementById('stC').textContent=us.length;document.getElementById('stR').textContent=rd.length;document.getElementById('stA').textContent=al.length;
+    const rev=rd.reduce((s,r)=>s+(r.bill??r.Bill??0),0);document.getElementById('stRev').textContent='$'+rev.toFixed(2);
+    document.getElementById('nbC').textContent=us.length;document.getElementById('nbR').textContent=rd.length;
+    const nba=document.getElementById('nbA');nba.textContent=al.length;nba.className='sb-badge'+(al.length>0?' ':'off');
+    if(lt){const fl=lt.flowRate??lt.FlowRate??0,li=lt.totalLiters??lt.TotalLiters??0,bi=lt.bill??lt.Bill??0,rt=lt.readingTime??lt.ReadingTime??null;
+      document.getElementById('ovF').innerHTML=Number(fl).toFixed(2)+'<span class="unit">L/min</span>';
+      document.getElementById('ovL').innerHTML=Number(li).toFixed(2)+'<span class="unit">L</span>';
+      document.getElementById('ovB').textContent='$'+Number(bi).toFixed(2);
+      document.getElementById('ovT').textContent=rt?new Date(rt).toLocaleString():'--';}
+    if(fChart){const s=[...rd].sort((a,b)=>new Date(a.readingTime??a.ReadingTime)-new Date(b.readingTime??b.ReadingTime)).slice(-20);fChart.data.labels=s.map(r=>new Date(r.readingTime??r.ReadingTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));fChart.data.datasets[0].data=s.map(r=>r.flowRate??r.FlowRate??0);fChart.update('active');}
+    const sb=[...rd].sort((a,b)=>new Date(b.readingTime??b.ReadingTime)-new Date(a.readingTime??a.ReadingTime));
+    document.getElementById('ovRB').innerHTML=sb.slice(0,8).map(r=>'<tr><td><span class="tag">'+(r.meterId??r.MeterId)+'</span></td><td class="mono">'+Number(r.flowRate??r.FlowRate??0).toFixed(2)+'</td><td class="mono">'+Number(r.totalLiters??r.TotalLiters??0).toFixed(2)+'</td><td class="mono grn">$'+Number(r.bill??r.Bill??0).toFixed(2)+'</td></tr>').join('');
+    const ovAB=document.getElementById('ovAB');ovAB.textContent=al.length;
+    const ovAL=document.getElementById('ovAL');
+    if(!al.length)ovAL.innerHTML='<div class="empty"><div class="ei">🔕</div>No alerts</div>';
+    else{const sa=[...al].sort((a,b)=>new Date(b.createdAt??b.CreatedAt)-new Date(a.createdAt??a.CreatedAt));ovAL.innerHTML=sa.slice(0,5).map(a=>'<div class="ai"><div class="ai-ic hi">⚠️</div><div><div class="ai-t">'+(a.alertType??a.AlertType??'Alert')+'</div><div class="ai-m">'+(a.message??a.Message??'')+'</div><div class="ai-tm">'+new Date(a.createdAt??a.CreatedAt).toLocaleString()+'</div></div></div>').join('');}
+    renderMS(us);renderRdgPage(rd);renderAltsPage(al);renderCust(custDB);checkLeak(al);
+    document.getElementById('sDot').classList.remove('off');document.getElementById('sTxt').textContent='Online';
+    addLog('Data refreshed — '+rd.length+' readings, '+al.length+' alerts');
+  }catch(e){document.getElementById('sDot').classList.add('off');document.getElementById('sTxt').textContent='Offline';toast('API unreachable','er','🔴');}
+  btn.classList.remove('spin');
+}
+
+function checkLeak(al){if(LD)return;const r=al.find(a=>(a.alertType??a.AlertType)==='High Usage'&&(Date.now()-new Date(a.createdAt??a.CreatedAt))<300000);const b=document.getElementById('leakBanner');if(r){b.classList.add('show');document.getElementById('leakM').textContent=r.meterId??r.MeterId??'--';}else b.classList.remove('show');}
+function dismissLeak(){LD=true;document.getElementById('leakBanner').classList.remove('show');}
+
+function exportCSV(){if(!AR.length){toast('No data','er','❌');return;}const rows=AR.map(r=>[r.meterId??r.MeterId,Number(r.flowRate??r.FlowRate??0).toFixed(2),Number(r.totalLiters??r.TotalLiters??0).toFixed(2),Number(r.bill??r.Bill??0).toFixed(2),r.readingTime??r.ReadingTime].join(','));dl(['MeterId,FlowRate,TotalLiters,Bill,ReadingTime',...rows].join('\n'),'readings-'+new Date().toISOString().split('T')[0]+'.csv','text/csv');toast('Exported '+AR.length+' readings','ok','⬇️');}
+function exportReport(type){let csv='',fn='';
+  if(type==='readings'){csv=['MeterId,FlowRate,TotalLiters,Bill,Time',...AR.map(r=>[r.meterId??r.MeterId,Number(r.flowRate??r.FlowRate??0).toFixed(2),Number(r.totalLiters??r.TotalLiters??0).toFixed(2),Number(r.bill??r.Bill??0).toFixed(2),r.readingTime??r.ReadingTime].join(','))].join('\n');fn='readings';}
+  else if(type==='customers'){csv=['Name,Account,Meter,Address,Tier,Status',...custDB.map(c=>[c.name,c.account,c.meter,c.address,c.tier,c.status].join(','))].join('\n');fn='customers';}
+  else if(type==='alerts'){csv=['Type,Meter,Message,Time',...AA.map(a=>[(a.alertType??a.AlertType),(a.meterId??a.MeterId),(a.message??a.Message),(a.createdAt??a.CreatedAt)].join(','))].join('\n');fn='alerts';}
+  else if(type==='billing'){csv=['Meter,Liters,WaterCharge,Fixed,VAT,Total',...[...new Set(AR.map(r=>r.meterId??r.MeterId))].map(m=>{const rs=AR.filter(x=>(x.meterId??x.MeterId)===m);const wc=rs.reduce((s,x)=>s+(x.bill??x.Bill??0),0);const tl=rs.reduce((s,x)=>s+(x.totalLiters??x.TotalLiters??0),0);const vat=(wc+tariff.fixed)*tariff.vat/100;return[m,tl.toFixed(2),wc.toFixed(2),tariff.fixed.toFixed(2),vat.toFixed(2),(wc+tariff.fixed+vat).toFixed(2)].join(',');})].join('\n');fn='billing';}
+  else if(type==='audit'){csv=['Time,Action',...log.map(l=>l.time+','+l.msg)].join('\n');fn='audit';}
+  if(!csv){toast('No data','er','❌');return;}dl(csv,'aquasense-'+fn+'-'+new Date().toISOString().split('T')[0]+'.csv','text/csv');toast('Exported: '+fn,'ok','📋');}
+function dl(content,filename,type){const a=document.createElement('a');a.href='data:'+type+';charset=utf-8,'+encodeURIComponent(content);a.download=filename;a.click();}
+function logout(){sessionStorage.clear();window.location.href='index.html';}
+
+// INIT
+initCharts();
+renderTariff();
+renderCust(custDB);
+document.getElementById('qa-d').value=new Date().toISOString().split('T')[0];
+fetchAll();
+setInterval(fetchAll,30000);
+</script>
+</body>
+</html>

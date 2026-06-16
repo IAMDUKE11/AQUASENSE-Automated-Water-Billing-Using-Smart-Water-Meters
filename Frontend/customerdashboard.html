@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaSense — Customer Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --navy:   #0A1628;
+  --navy2:  #0F2040;
+  --navy3:  #162952;
+  --blue:   #1E5EFF;
+  --blue2:  #3B7FFF;
+  --cyan:   #00D4FF;
+  --cyan2:  #7EE8FA;
+  --teal:   #00B4D8;
+  --green:  #00E5A0;
+  --amber:  #FFB800;
+  --red:    #FF4D6D;
+  --white:  #FFFFFF;
+  --text1:  #E8F0FF;
+  --text2:  #8BA3CC;
+  --text3:  #4A6080;
+  --glass:  rgba(255,255,255,0.04);
+  --glass2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --r:16px;--r2:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--navy);color:var(--text1);
+  min-height:100vh;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 10%, rgba(0,180,216,0.10) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 70% at 95% 90%, rgba(30,94,255,0.09) 0%,transparent 60%),
+    radial-gradient(ellipse 35% 35% at 50% 50%, rgba(0,212,255,0.04) 0%,transparent 50%);
+}
+
+/* ══════════════ LEAK BANNER ══════════════ */
+.leak-banner{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:500;
+  background:linear-gradient(90deg,rgba(255,77,109,0.97),rgba(180,20,50,0.97));
+  padding:14px 28px;align-items:center;gap:16px;
+  animation:leakFlash 1.2s infinite;
+}
+.leak-banner.show{display:flex}
+@keyframes leakFlash{0%,100%{opacity:1}50%{opacity:.75}}
+.leak-dismiss{
+  background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);
+  color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;margin-left:auto;
+}
+
+/* ══════════════ NAV ══════════════ */
+.nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(10,22,40,0.92);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  padding:14px 32px;display:flex;align-items:center;gap:16px;
+}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-logo{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+}
+.nav-title{font-size:17px;font-weight:800;letter-spacing:-0.3px}
+.nav-title span{color:var(--cyan)}
+.nav-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:var(--glass2);border:1px solid var(--border2);
+  border-radius:100px;padding:7px 14px;font-size:12px;font-weight:600;
+}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:sdot 2s infinite}
+.sdot.off{background:var(--red);box-shadow:0 0 8px var(--red);animation:none}
+@keyframes sdot{0%,100%{opacity:1}50%{opacity:.5}}
+.btn-nav{
+  display:flex;align-items:center;gap:7px;
+  border-radius:12px;padding:9px 18px;font-size:12px;font-weight:700;
+  font-family:'Outfit',sans-serif;cursor:pointer;border:none;transition:all .2s;
+}
+.btn-nav.primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 16px rgba(30,94,255,0.3)}
+.btn-nav.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,94,255,0.5)}
+.btn-nav.ghost{background:var(--glass2);border:1px solid var(--border2);color:var(--text2)}
+.btn-nav.ghost:hover{color:var(--red);border-color:rgba(255,77,109,0.3)}
+
+/* ══════════════ WRAPPER ══════════════ */
+.wrap{max-width:1280px;margin:0 auto;padding:28px 28px;position:relative;z-index:1}
+
+/* ══════════════ LIVE BANNER ══════════════ */
+.live-card{
+  border-radius:var(--r);
+  background:linear-gradient(135deg,var(--navy2) 0%,var(--navy3) 60%,#0D2060 100%);
+  border:1px solid var(--border2);
+  padding:28px 36px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.live-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,212,255,0.1) 0%,transparent 70%);
+}
+.live-card::after{
+  content:'';position:absolute;bottom:-80px;left:25%;width:350px;height:180px;
+  background:radial-gradient(ellipse,rgba(30,94,255,0.07) 0%,transparent 70%);
+}
+.live-head{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.live-indicator{
+  display:flex;align-items:center;gap:7px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;
+}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:sdot 1.5s infinite}
+.live-meta{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)}
+.live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+.live-stat{padding-right:32px;border-right:1px solid var(--border)}
+.live-stat:last-child{padding-right:0;border-right:none;padding-left:32px}
+.live-stat:nth-child(2){padding-left:32px}
+.lstat-label{font-size:10px;font-weight:700;letter-spacing:1.3px;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
+.lstat-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:#fff;line-height:1}
+.lstat-val.cyan{color:var(--cyan)}
+.lstat-unit{font-size:14px;color:var(--text2);margin-left:4px;font-family:'Outfit',sans-serif}
+
+/* ══════════════ LAYOUT ══════════════ */
+.grid-main{display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start}
+
+/* ══════════════ LEFT COLUMN ══════════════ */
+.left-col{display:flex;flex-direction:column;gap:20px}
+
+/* Usage cards */
+.usage-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.usage-card{
+  background:var(--glass2);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;transition:all .25s;
+}
+.usage-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.uc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.uc-label{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--text2);text-transform:uppercase}
+.uc-icon{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.uc-icon.blue{background:rgba(30,94,255,0.15)}
+.uc-icon.green{background:rgba(0,229,160,0.15)}
+.uc-val{font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.5px;line-height:1;margin-bottom:4px}
+.uc-gal{font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.uc-sub{font-size:11px;color:var(--text3);margin-top:6px}
+
+/* Panel */
+.panel{background:var(--glass2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.ph-title{font-size:14px;font-weight:700;color:var(--text1)}
+.ph-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.pb{padding:20px 22px}
+.chart-wrap{height:200px}
+
+/* History table */
+.hist-table{width:100%;border-collapse:collapse}
+.hist-table th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1.1px;color:var(--text3);text-transform:uppercase;border-bottom:1px solid var(--border)}
+.hist-table td{padding:11px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.hist-table tr:hover td{background:var(--glass)}
+.hist-table tr:last-child td{border:none}
+.table-wrap{max-height:260px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--navy3) transparent}
+.table-wrap::-webkit-scrollbar{width:3px}
+.table-wrap::-webkit-scrollbar-thumb{background:var(--navy3)}
+.bill-green{color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ══════════════ RIGHT COLUMN ══════════════ */
+.right-col{display:flex;flex-direction:column;gap:20px;position:sticky;top:90px}
+
+/* Bill card */
+.bill-card{
+  border-radius:var(--r);
+  background:linear-gradient(160deg,#080E1E 0%,#0F2040 50%,#0A1E3D 100%);
+  border:1px solid var(--border2);
+  padding:28px;overflow:hidden;position:relative;
+}
+.bill-card::before{
+  content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;
+  border-radius:50%;background:radial-gradient(circle,rgba(30,94,255,0.12) 0%,transparent 70%);
+}
+.bc-header{margin-bottom:20px}
+.bc-label{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+.bc-month{font-size:12px;color:var(--text2);margin-bottom:20px;font-family:'JetBrains Mono',monospace}
+.bc-amount-label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text3);text-transform:uppercase;margin-bottom:6px}
+.bc-amount{
+  font-size:46px;font-weight:900;letter-spacing:-2px;
+  color:var(--blue2);line-height:1;margin-bottom:4px;
+}
+.bc-due{font-size:11px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase}
+.bc-divider{height:1px;background:var(--border);margin:20px 0}
+.bc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px}
+.bc-row-label{color:var(--text2)}
+.bc-row-val{font-family:'JetBrains Mono',monospace;color:var(--text1);font-weight:600}
+.bc-total-row{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);
+}
+.bc-total-label{font-size:13px;font-weight:800;color:#fff}
+.bc-total-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--blue2)}
+.bc-buttons{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+.bc-btn{
+  width:100%;padding:14px;border-radius:12px;font-size:13px;font-weight:800;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;border:none;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.bc-btn.pay{
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:#fff;box-shadow:0 4px 20px rgba(30,94,255,0.35);
+}
+.bc-btn.pay:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(30,94,255,0.5)}
+.bc-btn.invoice{
+  background:var(--glass2);border:1px solid var(--border2);
+  color:var(--text2);
+}
+.bc-btn.invoice:hover{color:var(--text1);border-color:var(--border2)}
+
+/* Low balance warning */
+.low-warn{
+  display:none;border-radius:10px;padding:12px 16px;margin-top:14px;
+  background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.2);
+  font-size:12px;font-weight:700;color:var(--red);
+  align-items:center;gap:8px;
+}
+.low-warn.show{display:flex}
+
+/* Account card */
+.account-card{
+  background:var(--glass2);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;
+}
+.ac-title{font-size:10px;font-weight:700;letter-spacing:1.3px;color:var(--text3);text-transform:uppercase;margin-bottom:16px}
+.ac-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.ac-row:last-child{margin-bottom:0}
+.ac-icon{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:rgba(30,94,255,0.1);
+}
+.ac-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.ac-val{font-size:13px;font-weight:700;color:var(--text1);font-family:'JetBrains Mono',monospace}
+
+/* ══════════════ PAYMENT MODAL ══════════════ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--navy2);border:1px solid var(--border2);
+  border-radius:20px;padding:32px;width:420px;max-width:90vw;
+  box-shadow:var(--shadow);animation:modalIn .3s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-size:18px;font-weight:800}
+.modal-close{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--border);
+  background:var(--glass);color:var(--text2);cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.modal-close:hover{color:var(--red);border-color:rgba(255,77,109,0.3)}
+.modal-amount{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;
+}
+.modal-amount-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.modal-amount-val{font-size:28px;font-weight:800;color:var(--blue2);font-family:'JetBrains Mono',monospace}
+.pay-option{
+  display:flex;align-items:center;gap:14px;
+  padding:16px;border-radius:14px;
+  border:2px solid var(--border);
+  cursor:pointer;transition:all .2s;margin-bottom:10px;
+}
+.pay-option:hover{border-color:var(--blue);background:rgba(30,94,255,0.06)}
+.pay-option:last-child{margin-bottom:0}
+.pay-icon{
+  width:42px;height:42px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:rgba(30,94,255,0.1);
+}
+.pay-name{font-size:14px;font-weight:700;color:var(--text1)}
+.pay-desc{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ══════════════ ALERTS PANEL ══════════════ */
+.alerts-panel{
+  background:var(--glass2);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+}
+.alerts-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);
+}
+.alerts-panel-title{font-size:14px;font-weight:700;color:var(--text1);display:flex;align-items:center;gap:8px}
+.alert-count-badge{
+  min-width:20px;height:20px;border-radius:100px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;padding:0 6px;
+}
+.alert-count-badge.has-alerts{background:var(--red);color:#fff}
+.alert-count-badge.no-alerts{background:var(--glass2);color:var(--text3)}
+.alert-list-item{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03);
+  transition:background .15s;
+}
+.alert-list-item:last-child{border-bottom:none}
+.alert-list-item:hover{background:var(--glass)}
+.ali-icon{
+  width:34px;height:34px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.ali-icon.high{background:rgba(255,77,109,0.12);color:var(--red)}
+.ali-icon.info{background:rgba(0,212,255,0.10);color:var(--cyan)}
+.ali-title{font-size:13px;font-weight:700;color:var(--text1);margin-bottom:3px}
+.ali-msg{font-size:11px;color:var(--text2);line-height:1.4}
+.ali-time{font-size:10px;color:var(--text3);margin-top:4px;font-family:'JetBrains Mono',monospace}
+.ali-new-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px;
+  background:var(--red);box-shadow:0 0 6px var(--red);
+  animation:pulseDot 1.5s infinite;
+}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.3}}
+.no-alerts-state{
+  text-align:center;padding:28px 16px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.no-alerts-icon{font-size:28px;opacity:.4}
+.no-alerts-text{font-size:12px;color:var(--text3)}
+
+/* ══════════════ TOAST ══════════════ */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:10px}
+.toast{
+  display:flex;align-items:center;gap:12px;
+  background:var(--navy2);border:1px solid var(--border2);
+  border-radius:14px;padding:14px 18px;min-width:260px;
+  box-shadow:var(--shadow);animation:slideUp .3s ease;font-size:13px;font-weight:500;
+}
+.toast.success{border-color:rgba(0,229,160,0.3)}
+.toast.error{border-color:rgba(255,77,109,0.3)}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════ ANIMATIONS ══════════════ */
+.fade-up{opacity:0;transform:translateY(18px);animation:fadeUp .5s ease forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.fade-up:nth-child(1){animation-delay:.05s}
+.fade-up:nth-child(2){animation-delay:.10s}
+.fade-up:nth-child(3){animation-delay:.15s}
+.fade-up:nth-child(4){animation-delay:.20s}
+</style>
+</head>
+<body>
+
+<!-- LEAK BANNER -->
+<div class="leak-banner" id="leakBanner">
+  <span>⚠️</span>
+  <div style="flex:1;font-size:14px;font-weight:700;color:#fff">HIGH USAGE on your meter — Check pipes and taps immediately.</div>
+  <button class="leak-dismiss" onclick="dismissLeak()">Dismiss</button>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Pay Bill</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-amount">
+      <div class="modal-amount-label">Outstanding Amount</div>
+      <div class="modal-amount-val" id="modalAmt">$0.00</div>
+    </div>
+    <div class="pay-option">
+      <div class="pay-icon">📱</div>
+      <div><div class="pay-name">EcoCash</div><div class="pay-desc">Mobile Money Transfer</div></div>
+    </div>
+    <div class="pay-option">
+      <div class="pay-icon">🏦</div>
+      <div><div class="pay-name">ZIPIT</div><div class="pay-desc">Instant Bank Transfer</div></div>
+    </div>
+    <div class="pay-option">
+      <div class="pay-icon">💳</div>
+      <div><div class="pay-name">Debit / Credit Card</div><div class="pay-desc">Visa, Mastercard, Maestro</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">💧</div>
+    <div>
+      <div class="nav-title">AquaSense <span>Portal</span></div>
+    </div>
+  </div>
+  <div class="nav-sub" id="meterHeader">METER: --</div>
+  <div class="nav-right">
+    <div class="status-pill">
+      <div class="sdot" id="statusDot"></div>
+      <span id="userName">Loading...</span>
+    </div>
+    <button class="btn-nav primary" onclick="generatePDF()">📄 Invoice</button>
+    <button class="btn-nav ghost" onclick="logout()">⏻</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="wrap">
+
+  <!-- LIVE CARD -->
+  <div class="live-card fade-up">
+    <div class="live-head">
+      <div class="live-indicator"><div class="ldot"></div>Live Meter Reading</div>
+      <div class="live-meta" id="liveTime">--</div>
+    </div>
+    <div class="live-grid">
+      <div class="live-stat">
+        <div class="lstat-label">Flow Rate</div>
+        <div class="lstat-val" id="liveFlow">--<span class="lstat-unit">L/min</span></div>
+      </div>
+      <div class="live-stat">
+        <div class="lstat-label">Total Used</div>
+        <div class="lstat-val" id="liveLiters">--<span class="lstat-unit">L</span></div>
+      </div>
+      <div class="live-stat">
+        <div class="lstat-label">Session Bill</div>
+        <div class="lstat-val cyan" id="liveBill">$--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid-main">
+
+    <!-- LEFT -->
+    <div class="left-col">
+
+      <!-- Usage Cards -->
+      <div class="usage-row fade-up">
+        <div class="usage-card">
+          <div class="uc-top">
+            <div class="uc-label">Today's Usage</div>
+            <div class="uc-icon blue">📅</div>
+          </div>
+          <div class="uc-val" id="todayL">0.00 L</div>
+          <div class="uc-gal" id="todayGal">0.00 gal</div>
+          <div class="uc-sub">Since midnight</div>
+        </div>
+        <div class="usage-card">
+          <div class="uc-top">
+            <div class="uc-label">7-Day Total</div>
+            <div class="uc-icon green">📆</div>
+          </div>
+          <div class="uc-val" id="weekL">0.00 L</div>
+          <div class="uc-gal" id="weekGal">0.00 gal</div>
+          <div class="uc-sub">Rolling 7 days</div>
+        </div>
+      </div>
+
+      <!-- 7-Day Chart -->
+      <div class="panel fade-up">
+        <div class="ph">
+          <div>
+            <div class="ph-title">Daily Usage — Last 7 Days</div>
+            <div class="ph-sub">Litres and gallons per day</div>
+          </div>
+          <div style="display:flex;gap:12px;font-size:11px;color:var(--text3)">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--blue);display:inline-block"></span>Liters</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--teal);display:inline-block"></span>Gallons</span>
+          </div>
+        </div>
+        <div class="pb"><div class="chart-wrap"><canvas id="dailyChart"></canvas></div></div>
+      </div>
+
+      <!-- Usage History -->
+      <div class="panel fade-up">
+        <div class="ph">
+          <div>
+            <div class="ph-title">Usage History</div>
+            <div class="ph-sub" id="histMeter">--</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Top 15 sessions</div>
+        </div>
+        <div class="table-wrap">
+          <table class="hist-table">
+            <thead>
+              <tr><th>Date & Time</th><th>Flow</th><th>Liters</th><th>Bill</th></tr>
+            </thead>
+            <tbody id="histBody">
+              <tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text3)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+
+      <!-- Bill Card -->
+      <div class="bill-card fade-up">
+        <div class="bc-label">Outstanding Bill</div>
+        <div class="bc-month" id="billMonth">-- · -- L used</div>
+        <div class="bc-amount-label">Total Due</div>
+        <div class="bc-amount" id="billAmount">$0.00</div>
+        <div class="bc-due">Due by end of month</div>
+        <div class="bc-divider"></div>
+        <div class="bc-row">
+          <span class="bc-row-label">Water Charge</span>
+          <span class="bc-row-val" id="billWater">$0.00</span>
+        </div>
+        <div class="bc-row">
+          <span class="bc-row-label">Fixed Service</span>
+          <span class="bc-row-val">$25.00</span>
+        </div>
+        <div class="bc-row" style="margin-bottom:0">
+          <span class="bc-row-label">VAT (8.5%)</span>
+          <span class="bc-row-val" id="billVat">$0.00</span>
+        </div>
+        <div class="bc-total-row">
+          <span class="bc-total-label">TOTAL</span>
+          <span class="bc-total-val" id="billTotal">$0.00</span>
+        </div>
+        <div class="bc-buttons">
+          <button class="bc-btn pay" onclick="openModal()">💳 Pay Securely</button>
+          <button class="bc-btn invoice" onclick="generatePDF()">📄 Download Invoice</button>
+        </div>
+        <div class="low-warn" id="lowWarn">⚠️ Low balance — top up to avoid disconnection</div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="account-card fade-up">
+        <div class="ac-title">Account Info</div>
+        <div class="ac-row">
+          <div class="ac-icon">#️⃣</div>
+          <div><div class="ac-label">Account</div><div class="ac-val" id="acAccount">--</div></div>
+        </div>
+        <div class="ac-row">
+          <div class="ac-icon">📡</div>
+          <div><div class="ac-label">Meter ID</div><div class="ac-val" id="acMeter">--</div></div>
+        </div>
+        <div class="ac-row">
+          <div class="ac-icon">📍</div>
+          <div><div class="ac-label">Address</div><div class="ac-val" id="acAddr" style="font-family:'Outfit',sans-serif;font-size:12px">--</div></div>
+        </div>
+        <div class="ac-row">
+          <div class="ac-icon">📊</div>
+          <div><div class="ac-label">Total Sessions</div><div class="ac-val" id="acSessions">--</div></div>
+        </div>
+      </div>
+
+      <!-- Alerts Panel -->
+      <div class="alerts-panel fade-up">
+        <div class="alerts-panel-header">
+          <div class="alerts-panel-title">
+            🔔 My Alerts
+            <span class="alert-count-badge no-alerts" id="alertCountBadge">0</span>
+          </div>
+          <span style="font-size:11px;color:var(--text3)" id="alertsLastCheck">--</span>
+        </div>
+        <div id="alertsPanelBody">
+          <div class="no-alerts-state">
+            <div class="no-alerts-icon">🔕</div>
+            <div class="no-alerts-text">No alerts for your meter</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API = 'https://localhost:7235/api';
+const FIXED = 25.00, VAT = 0.085, L2G = 0.264172;
+let currentMeter = '', currentUser = {}, myReadings = [], latestReading = null;
+let dailyChart = null, leakDismissed = false;
+
+// ── Toast ───────────────────────────────────────────
+function showToast(msg, type='info', icon='ℹ️') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+
+// ── Init ────────────────────────────────────────────
+window.onload = () => {
+  const sess = JSON.parse(sessionStorage.getItem('currentCustomer'));
+  if (!sess) { window.location.href='index.html'; return; }
+  currentMeter = sess.meter;
+  document.getElementById('meterHeader').textContent = 'METER: ' + sess.meter;
+  document.getElementById('acAccount').textContent = sess.account;
+  document.getElementById('acMeter').textContent = sess.meter;
+  document.getElementById('histMeter').textContent = sess.meter;
+  initDailyChart();
+  fetchAll();
+  setInterval(fetchLatest, 10000);
+  setInterval(fetchAll, 30000);
+};
+
+// ── Charts ───────────────────────────────────────────
+function initDailyChart() {
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+  dailyChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [
+      {
+        label:'Liters', data:[], yAxisID:'y',
+        backgroundColor:'rgba(30,94,255,0.7)',borderRadius:6,
+      },
+      {
+        label:'Gallons', data:[], yAxisID:'y1',
+        backgroundColor:'rgba(0,180,216,0.5)',borderRadius:6,
+      }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0F2040',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+          titleFont:{family:'JetBrains Mono',size:10},bodyFont:{family:'JetBrains Mono',size:10},
+          padding:10,
+          callbacks:{label:c=>c.datasetIndex===0?' '+Number(c.raw).toFixed(2)+' L':' '+Number(c.raw).toFixed(2)+' gal'}
+        }
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#4A6080',font:{size:9,family:'JetBrains Mono'},maxTicksLimit:7}},
+        y:{position:'left',grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#3B7FFF',font:{size:9,family:'JetBrains Mono'}},beginAtZero:true},
+        y1:{position:'right',grid:{drawOnChartArea:false},ticks:{color:'#00B4D8',font:{size:9,family:'JetBrains Mono'}},beginAtZero:true},
+      }
+    }
+  });
+}
+
+function updateDailyChart(readings) {
+  if (!dailyChart) return;
+  const now = new Date();
+  const days = Array.from({length:7},(_,i)=>{ const d=new Date(now); d.setDate(now.getDate()-6+i); return d; });
+  dailyChart.data.labels = days.map(d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'}));
+  const liters = days.map(d=>{
+    const ds=d.toDateString();
+    return readings.filter(r=>new Date(r.readingTime??r.ReadingTime).toDateString()===ds).reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);
+  });
+  dailyChart.data.datasets[0].data = liters;
+  dailyChart.data.datasets[1].data = liters.map(l=>l*L2G);
+  dailyChart.update('active');
+}
+
+// ── Fetch ───────────────────────────────────────────
+async function fetchAll() {
+  try {
+    const [readings, users, alerts] = await Promise.all([
+      fetch(`${API}/water/all`).then(r=>r.json()),
+      fetch(`${API}/users/all`).then(r=>r.json()),
+      fetch(`${API}/alerts/all`).then(r=>r.json()),
+    ]);
+    const user = users.find(u=>(u.meterId??u.MeterId)===currentMeter);
+    if (user) {
+      currentUser = user;
+      document.getElementById('userName').textContent = user.name??user.Name??'Customer';
+      document.getElementById('acAddr').textContent = user.address??user.Address??'--';
+    }
+    myReadings = readings.filter(r=>(r.meterId??r.MeterId)===currentMeter);
+    document.getElementById('acSessions').textContent = myReadings.length + ' sessions';
+    updateDailyUsage(myReadings);
+    updateDailyChart(myReadings);
+    updateBill(myReadings);
+    renderHistory(myReadings);
+    checkLeakAlert(alerts);
+    renderAlerts(alerts);
+    document.getElementById('statusDot').classList.remove('off');
+    fetchLatest();
+  } catch(e) {
+    document.getElementById('statusDot').classList.add('off');
+    showToast('Cannot reach API','error','❌');
+  }
+}
+
+async function fetchLatest() {
+  try {
+    const r = await fetch(`${API}/water/latest`);
+    if (!r.ok) return;
+    latestReading = await r.json();
+    const flow  = latestReading.flowRate    ?? latestReading.FlowRate    ?? 0;
+    const liters= latestReading.totalLiters ?? latestReading.TotalLiters ?? 0;
+    const bill  = latestReading.bill        ?? latestReading.Bill        ?? 0;
+    const time  = latestReading.readingTime ?? latestReading.ReadingTime ?? null;
+    document.getElementById('liveFlow').innerHTML   = Number(flow).toFixed(2)+'<span class="lstat-unit">L/min</span>';
+    document.getElementById('liveLiters').innerHTML = Number(liters).toFixed(2)+'<span class="lstat-unit">L</span>';
+    document.getElementById('liveBill').textContent = '$'+Number(bill).toFixed(2);
+    document.getElementById('liveTime').textContent = time ? new Date(time).toLocaleTimeString() : '--';
+    document.getElementById('statusDot').classList.remove('off');
+    updateBill(myReadings);
+  } catch(e) {
+    document.getElementById('statusDot').classList.add('off');
+  }
+}
+
+// ── Daily Usage ─────────────────────────────────────
+function updateDailyUsage(readings) {
+  const now = new Date(), todayS = now.toDateString();
+  const todayL = readings.filter(r=>new Date(r.readingTime??r.ReadingTime).toDateString()===todayS).reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);
+  document.getElementById('todayL').textContent = todayL.toFixed(2)+' L';
+  document.getElementById('todayGal').textContent = (todayL*L2G).toFixed(2)+' gal';
+  const sevenAgo = new Date(now); sevenAgo.setDate(now.getDate()-6); sevenAgo.setHours(0,0,0,0);
+  const weekL = readings.filter(r=>new Date(r.readingTime??r.ReadingTime)>=sevenAgo).reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);
+  document.getElementById('weekL').textContent = weekL.toFixed(2)+' L';
+  document.getElementById('weekGal').textContent = (weekL*L2G).toFixed(2)+' gal';
+}
+
+// ── Bill ────────────────────────────────────────────
+function updateBill(readings) {
+  const now = new Date();
+  const month = now.getMonth(), year = now.getFullYear();
+  const monthR = readings.filter(r=>{ const d=new Date(r.readingTime??r.ReadingTime); return d.getMonth()===month&&d.getFullYear()===year; });
+  const wc = monthR.reduce((s,r)=>s+(r.bill??r.Bill??0),0);
+  const totalL = monthR.reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);
+  const vat = (wc+FIXED)*VAT;
+  const total = wc+FIXED+vat;
+  document.getElementById('billAmount').textContent = '$'+total.toFixed(2);
+  document.getElementById('billWater').textContent  = '$'+wc.toFixed(2);
+  document.getElementById('billVat').textContent    = '$'+vat.toFixed(2);
+  document.getElementById('billTotal').textContent  = '$'+total.toFixed(2);
+  document.getElementById('modalAmt').textContent   = '$'+total.toFixed(2);
+  const mn = now.toLocaleString('default',{month:'long',year:'numeric'});
+  document.getElementById('billMonth').textContent  = mn+' · '+totalL.toFixed(2)+' L used';
+  document.getElementById('lowWarn').className = 'low-warn' + (total > 45 ? ' show' : '');
+}
+
+// ── History ─────────────────────────────────────────
+function renderHistory(readings) {
+  const tb = document.getElementById('histBody');
+  if (!readings.length) { tb.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text3)">No readings yet</td></tr>'; return; }
+  const sorted = [...readings].sort((a,b)=>new Date(b.readingTime??b.ReadingTime)-new Date(a.readingTime??a.ReadingTime));
+  tb.innerHTML = sorted.slice(0,15).map((r,i)=>`
+    <tr>
+      <td style="font-size:11px;color:var(--text3)">${new Date(r.readingTime??r.ReadingTime).toLocaleString()}</td>
+      <td class="mono" style="font-size:11px;color:var(--text2)">${Number(r.flowRate??r.FlowRate??0).toFixed(2)}</td>
+      <td class="mono" style="font-size:11px;color:var(--text2)">${Number(r.totalLiters??r.TotalLiters??0).toFixed(2)}</td>
+      <td class="mono bill-green">$${Number(r.bill??r.Bill??0).toFixed(2)}</td>
+    </tr>`).join('');
+}
+
+// ── Alerts Panel + Leak Banner ───────────────────────
+function renderAlerts(alerts) {
+  // Filter to this customer's meter — handle both casing variants
+  const myAlerts = alerts.filter(a => {
+    const mid = a.meterId ?? a.MeterId ?? '';
+    return mid === currentMeter;
+  });
+
+  // Update badge
+  const badge = document.getElementById('alertCountBadge');
+  badge.textContent = myAlerts.length;
+  badge.className = 'alert-count-badge ' + (myAlerts.length > 0 ? 'has-alerts' : 'no-alerts');
+
+  // Last check time
+  document.getElementById('alertsLastCheck').textContent = new Date().toLocaleTimeString();
+
+  const body = document.getElementById('alertsPanelBody');
+
+  if (!myAlerts.length) {
+    body.innerHTML = `
+      <div class="no-alerts-state">
+        <div class="no-alerts-icon">🔕</div>
+        <div class="no-alerts-text">No alerts for your meter</div>
+      </div>`;
+    return;
+  }
+
+  // Sort newest first
+  const sorted = [...myAlerts].sort((a,b) =>
+    new Date(b.createdAt??b.CreatedAt) - new Date(a.createdAt??a.CreatedAt)
+  );
+
+  body.innerHTML = sorted.map(a => {
+    const type    = a.alertType ?? a.AlertType ?? 'Alert';
+    const msg     = a.message   ?? a.Message   ?? '';
+    const time    = a.createdAt ?? a.CreatedAt;
+    const isHigh  = type === 'High Usage';
+    // Mark as "new" if within last 30 minutes
+    const isNew   = (Date.now() - new Date(time)) < 1800000;
+    return `
+    <div class="alert-list-item">
+      <div class="ali-icon ${isHigh ? 'high' : 'info'}">${isHigh ? '⚠️' : 'ℹ️'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="ali-title">${type}</div>
+        <div class="ali-msg">${msg}</div>
+        <div class="ali-time">${new Date(time).toLocaleString()}</div>
+      </div>
+      ${isNew ? '<div class="ali-new-dot" title="New"></div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function checkLeakAlert(alerts) {
+  if (leakDismissed) return;
+
+  // Fix: handle both casing AND remove the 5-minute restriction
+  // Show banner for any High Usage alert for this meter (latest one)
+  const myAlerts = alerts.filter(a => {
+    const mid  = a.meterId  ?? a.MeterId  ?? '';
+    const type = a.alertType ?? a.AlertType ?? '';
+    return mid === currentMeter && type === 'High Usage';
+  });
+
+  const banner = document.getElementById('leakBanner');
+
+  if (myAlerts.length > 0) {
+    banner.classList.add('show');
+    // Play beep — but only once per page load (guard with a flag)
+    if (!window._leakBeepPlayed) {
+      window._leakBeepPlayed = true;
+      try {
+        const actx = new (window.AudioContext||window.webkitAudioContext)();
+        [0,400,800].forEach(d => {
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.connect(g); g.connect(actx.destination);
+          o.frequency.value = 880; o.type = 'sine';
+          g.gain.setValueAtTime(0.25, actx.currentTime + d/1000);
+          g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + d/1000 + 0.35);
+          o.start(actx.currentTime + d/1000);
+          o.stop(actx.currentTime  + d/1000 + 0.4);
+        });
+      } catch(e) {}
+    }
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ── PDF ─────────────────────────────────────────────
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const now = new Date();
+  const month = now.getMonth(), year = now.getFullYear();
+  const monthR = myReadings.filter(r=>{ const d=new Date(r.readingTime??r.ReadingTime); return d.getMonth()===month&&d.getFullYear()===year; });
+  const wc = monthR.reduce((s,r)=>s+(r.bill??r.Bill??0),0);
+  const totalL = monthR.reduce((s,r)=>s+(r.totalLiters??r.TotalLiters??0),0);
+  const vat=(wc+FIXED)*VAT, total=wc+FIXED+vat;
+  const mn = now.toLocaleString('default',{month:'long',year:'numeric'});
+
+  doc.setFillColor(30,94,255);
+  doc.rect(0,0,210,42,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(24);doc.setFont('helvetica','bold');
+  doc.text('AQUASENSE',14,18);
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.text('IoT Smart Water Metering System',14,26);
+  doc.text('WATER BILL INVOICE · '+mn.toUpperCase(),14,34);
+
+  doc.setTextColor(30,41,59);
+  doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text('Invoice Details',14,56);
+  doc.setFont('helvetica','normal');
+  doc.text('Invoice No: INV-'+now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0'),14,64);
+  doc.text('Date: '+now.toLocaleDateString(),14,72);
+  doc.text('Due: End of Month',14,80);
+
+  doc.setFont('helvetica','bold');doc.text('Bill To:',130,56);
+  doc.setFont('helvetica','normal');
+  doc.text(currentUser.name??currentUser.Name??'--',130,64);
+  doc.text(currentUser.address??currentUser.Address??'--',130,72);
+  doc.text('Meter: '+currentMeter,130,80);
+
+  doc.setDrawColor(226,232,240);doc.setLineWidth(0.5);doc.line(14,88,196,88);
+
+  doc.setFillColor(248,250,252);doc.rect(14,92,182,10,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(100,116,139);
+  doc.text('DESCRIPTION',18,99);doc.text('AMOUNT',175,99,{align:'right'});
+
+  const rows=[
+    ['Water Consumption ('+mn+')', '$'+wc.toFixed(2)],
+    ['Total Litres: '+totalL.toFixed(2)+' L',''],
+    ['Fixed Service Charge','$'+FIXED.toFixed(2)],
+    ['VAT (8.5%)','$'+vat.toFixed(2)],
+  ];
+  let y=110;
+  doc.setFont('helvetica','normal');doc.setTextColor(30,41,59);doc.setFontSize(10);
+  rows.forEach(([d,a])=>{ doc.text(d,18,y); if(a) doc.text(a,175,y,{align:'right'}); y+=10; });
+  doc.line(14,y,196,y); y+=8;
+  doc.setFont('helvetica','bold');doc.setFontSize(12);
+  doc.text('TOTAL DUE',18,y); doc.setTextColor(30,94,255);doc.text('$'+total.toFixed(2),175,y,{align:'right'});
+  y+=20;
+
+  doc.setTextColor(30,41,59);doc.setFontSize(10);doc.setFont('helvetica','bold');
+  doc.text('Reading History ('+mn+')',14,y); y+=8;
+  doc.setFillColor(248,250,252);doc.rect(14,y,182,8,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(100,116,139);
+  doc.text('DATE & TIME',18,y+5.5);doc.text('FLOW',80,y+5.5);doc.text('LITERS',120,y+5.5);doc.text('BILL',175,y+5.5,{align:'right'});
+  y+=12; doc.setFont('helvetica','normal');doc.setTextColor(30,41,59);
+  monthR.sort((a,b)=>new Date(b.readingTime??b.ReadingTime)-new Date(a.readingTime??a.ReadingTime)).slice(0,10).forEach(r=>{
+    if(y>260)return;
+    doc.text(new Date(r.readingTime??r.ReadingTime).toLocaleString(),18,y);
+    doc.text(Number(r.flowRate??r.FlowRate??0).toFixed(2)+' L/min',80,y);
+    doc.text(Number(r.totalLiters??r.TotalLiters??0).toFixed(2)+' L',120,y);
+    doc.text('$'+Number(r.bill??r.Bill??0).toFixed(2),175,y,{align:'right'}); y+=8;
+  });
+
+  doc.setFillColor(30,94,255);doc.rect(0,278,210,20,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('AquaSense IoT Water Management System | Generated: '+now.toLocaleString(),14,290);
+
+  doc.save('AquaSense-Invoice-'+currentMeter+'-'+now.toISOString().split('T')[0]+'.pdf');
+  showToast('Invoice downloaded successfully','success','📄');
+}
+
+function openModal()  { document.getElementById('payModal').classList.add('show'); }
+function closeModal() { document.getElementById('payModal').classList.remove('show'); }
+function logout()     { sessionStorage.clear(); window.location.href='index.html'; }
+</script>
+</body>
+</html>

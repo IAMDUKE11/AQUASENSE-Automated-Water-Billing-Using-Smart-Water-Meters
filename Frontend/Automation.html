@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Water Management - AquaFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .tab-active {
+            color: #2563eb !important;
+            border-bottom: 2px solid #2563eb !important;
+            padding-bottom: 1rem;
+        }
+        
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 40px;
+        }
+        
+        .bar {
+            background: #3b82f6;
+            border-radius: 2px;
+            flex: 1;
+            transition: height 0.3s ease;
+        }
+        
+        .stat-card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .notif-item {
+            border: 1px solid #f1f5f9;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background: white;
+            transition: all 0.2s;
+        }
+        
+        .notif-item:hover {
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+        }
+        
+        .channel-pill {
+            font-size: 10px;
+            color: #94a3b8;
+            border: 1px solid #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <div class="bg-blue-600 p-2 rounded-lg mr-3 shadow-lg shadow-blue-200">
+                    <i class="fa-solid fa-gear text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-slate-800">
+                        Smart Water Management
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">
+                        Advanced automation & AI-powered insights
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-2 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">
+            <span
+              class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"
+            ></span> System Online
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                <div class="p-3 bg-blue-50 text-blue-500 rounded-lg">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">
+                        Current Usage
+                    </p>
+                    <p class="text-lg font-black text-slate-800">
+                        45,233 <span class="text-[10px] font-normal">gallons/h</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                <div class="p-3 bg-emerald-50 text-emerald-500 rounded-lg">
+                    <i class="fa-solid fa-forward-step"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">
+                        Avg Flow Rate
+                    </p>
+                    <p class="text-lg font-black text-slate-800">
+                        123.9 <span class="text-[10px] font-normal">GPM</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                <div class="p-3 bg-purple-50 text-purple-500 rounded-lg">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Pressure</p>
+                    <p class="text-lg font-black text-slate-800">
+                        <span id="pressureVal">99.2</span>
+                        <span class="text-[10px] font-normal">PSI</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                <div class="p-3 bg-orange-50 text-orange-500 rounded-lg">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">Efficiency</p>
+                    <p class="text-lg font-black text-slate-800">
+                        <span id="efficiencyVal">94.8</span>%
+                        <span class="text-[10px] font-normal">system wide</span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-100 flex items-center gap-4">
+                <div class="p-3 bg-rose-50 text-rose-500 rounded-lg">
+                    <i class="fa-solid fa-link"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-bold uppercase">
+                        Connections
+                    </p>
+                    <p class="text-lg font-black text-slate-800">
+                        1203 <span class="text-[10px] font-normal">active</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
+            <div class="bg-blue-600 p-3 rounded-lg text-white shadow-lg shadow-blue-200">
+                <p class="text-lg font-black">1247</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">
+                    Total Customers
+                </p>
+            </div>
+            <div class="bg-emerald-500 p-3 rounded-lg text-white">
+                <p class="text-lg font-black">8</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">
+                    Active Workflows
+                </p>
+            </div>
+            <div class="bg-amber-500 p-3 rounded-lg text-white">
+                <p class="text-lg font-black">324</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">Pending Bills</p>
+            </div>
+            <div class="bg-rose-500 p-3 rounded-lg text-white">
+                <p class="text-lg font-black">12</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">Leak Alerts</p>
+            </div>
+            <div class="bg-purple-600 p-3 rounded-lg text-white">
+                <p class="text-lg font-black">156</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">
+                    AI Queries Today
+                </p>
+            </div>
+            <div class="bg-indigo-700 p-3 rounded-lg text-white">
+                <p class="text-lg font-black">892</p>
+                <p class="text-[9px] font-bold uppercase opacity-80">Auto Payments</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div class="flex items-center justify-between mb-6 border-b border-slate-50 pb-4">
+                <div class="flex gap-6 text-xs font-bold text-slate-400">
+                    <button id="workflowBtn" onclick="showTab('workflow')" class="tab-active flex items-center gap-2 uppercase tracking-tighter">
+              <i class="fa-solid fa-bolt"></i> Workflow Engine
+            </button>
+                    <button id="leakBtn" onclick="showTab('leak')" class="hover:text-slate-600 flex items-center gap-2 uppercase tracking-tighter">
+              <i class="fa-solid fa-droplet-slash"></i> Leak Detection
+            </button>
+                    <button class="hover:text-slate-600 flex items-center gap-2 uppercase tracking-tighter">
+              <i class="fa-solid fa-bell"></i> Notifications
+            </button>
+                </div>
+                <button onclick="toggleWorkflowModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Create Workflow
+          </button>
+            </div>
+
+            <div id="workflowSection">
+                <div class="mb-4">
+                    <h2 class="font-extrabold text-slate-800 text-lg">
+                        Workflow Automation Engine
+                    </h2>
+                    <p class="text-[10px] text-slate-400 font-medium">
+                        Automate billing cycles, notifications, and payment processing
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-slate-100 rounded-xl p-5">
+                        <div class="flex justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                <h4 class="font-bold text-slate-700 text-sm">
+                                    Monthly Billing Cycle
+                                </h4>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Active</span
+                >
+              </div>
+              <div class="text-[10px] text-slate-500 space-y-3">
+                <p>
+                  <span class="font-bold text-slate-400">Trigger:</span> Every 1st of month
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">Generate Bills</span
+                  ><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded"
+                    >Send Notifications</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-emerald-600 font-black text-sm">98.5%</p>
+                    <p>Success Rate</p>
+                  </div>
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-blue-600 font-black text-sm">1247</p>
+                    <p>Processed</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-4 text-[10px] font-bold uppercase">
+                <button class="flex-1 border py-2 rounded-lg hover:bg-slate-50">
+                  Edit</button
+                ><button
+                  class="flex-1 border py-2 rounded-lg hover:bg-slate-50"
+                >
+                  Logs</button
+                ><button
+                  class="bg-blue-600 text-white w-10 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-5">
+              <div class="flex justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                <h4 class="font-bold text-slate-700 text-sm">
+                                    Overdue Payment Reminder
+                                </h4>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Active</span
+                >
+              </div>
+              <div class="text-[10px] text-slate-500 space-y-3">
+                <p>
+                  <span class="font-bold text-slate-400">Trigger:</span> High priority delay
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">Send Email</span
+                  ><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded"
+                    >Generate Late Fee</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-emerald-600 font-black text-sm">94.2%</p>
+                    <p>Success Rate</p>
+                  </div>
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-blue-600 font-black text-sm">89</p>
+                    <p>Processed</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-4 text-[10px] font-bold uppercase">
+                <button class="flex-1 border py-2 rounded-lg hover:bg-slate-50">
+                  Edit</button
+                ><button
+                  class="flex-1 border py-2 rounded-lg hover:bg-slate-50"
+                >
+                  Logs</button
+                ><button
+                  class="bg-blue-600 text-white w-10 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-5">
+              <div class="flex justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                <h4 class="font-bold text-slate-700 text-sm">
+                                    High Usage Alert
+                                </h4>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Active</span
+                >
+              </div>
+              <div class="text-[10px] text-slate-500 space-y-3">
+                <p>
+                  <span class="font-bold text-slate-400">Trigger:</span> Threshold Breach
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">Alert Customer</span
+                  ><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded"
+                    >Flag Account</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-emerald-600 font-black text-sm">96.8%</p>
+                    <p>Success Rate</p>
+                  </div>
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-blue-600 font-black text-sm">34</p>
+                    <p>Processed</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-4 text-[10px] font-bold uppercase">
+                <button class="flex-1 border py-2 rounded-lg hover:bg-slate-50">
+                  Edit</button
+                ><button
+                  class="flex-1 border py-2 rounded-lg hover:bg-slate-50"
+                >
+                  Logs</button
+                ><button
+                  class="bg-blue-600 text-white w-10 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-5">
+              <div class="flex justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                <h4 class="font-bold text-slate-700 text-sm">
+                                    Payment Gateway Integration
+                                </h4>
+                            </div>
+                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Active</span
+                >
+              </div>
+              <div class="text-[10px] text-slate-500 space-y-3">
+                <p>
+                  <span class="font-bold text-slate-400">Trigger:</span> Payment initiated
+                            </p>
+                            <div class="flex gap-2">
+                                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded">Validate</span
+                  ><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded"
+                    >Send Confirmation</span
+                  >
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-emerald-600 font-black text-sm">99.1%</p>
+                    <p>Success Rate</p>
+                  </div>
+                  <div class="bg-slate-50 p-2 rounded-lg">
+                    <p class="text-blue-600 font-black text-sm">456</p>
+                    <p>Processed</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2 mt-4 text-[10px] font-bold uppercase">
+                <button class="flex-1 border py-2 rounded-lg hover:bg-slate-50">
+                  Edit</button
+                ><button
+                  class="flex-1 border py-2 rounded-lg hover:bg-slate-50"
+                >
+                  Logs</button
+                ><button
+                  class="bg-blue-600 text-white w-10 rounded-lg flex items-center justify-center"
+                >
+                  <i class="fa-solid fa-play"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-8 pt-6 border-t grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <h5 class="text-[10px] font-bold text-slate-400 uppercase">
+                Executions
+              </h5>
+              <p class="text-2xl font-black text-blue-600">1,826</p>
+            </div>
+            <div>
+              <h5 class="text-[10px] font-bold text-slate-400 uppercase">
+                Success Rate
+              </h5>
+              <p class="text-2xl font-black text-emerald-500">97.2%</p>
+            </div>
+            <div>
+              <h5 class="text-[10px] font-bold text-slate-400 uppercase">
+                Avg Time
+              </h5>
+              <p class="text-2xl font-black text-purple-500">45s</p>
+            </div>
+            <div>
+              <h5 class="text-[10px] font-bold text-slate-400 uppercase">
+                Cost Savings
+              </h5>
+              <p class="text-2xl font-black text-orange-500">$2,340</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="leakSection" class="hidden">
+          <div class="mb-6 flex justify-between items-center">
+            <div>
+              <h2 class="font-extrabold text-slate-800 text-lg">
+                AI-Powered Leak Detection
+              </h2>
+              <p
+                class="text-[10px] text-slate-400 font-medium uppercase tracking-wider"
+              >
+                Real-time monitoring and early leak detection system
+              </p>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2"
+              >
+                <i class="fa-solid fa-robot"></i> Configure AI
+              </button>
+              <button
+                class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2"
+              >
+                <i class="fa-solid fa-file-export"></i> Export Report
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div
+              class="bg-rose-50 border border-rose-100 rounded-2xl p-5 relative overflow-hidden"
+            >
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="font-bold text-slate-800">Sarah Johnson</h4>
+                  <p
+                    class="text-[9px] text-slate-400 font-bold uppercase tracking-widest"
+                  >
+                    456 Oak Avenue
+                  </p>
+                </div>
+                <span
+                  class="text-[8px] font-black text-rose-500 bg-rose-100 px-2 py-0.5 rounded"
+                  >ACTIVE</span
+                >
+              </div>
+              <div class="space-y-2 text-[10px] mb-4">
+                <div class="flex justify-between text-slate-500">
+                  <span>Leak Type:</span
+                  ><span class="font-bold">Continuous Flow</span>
+                            </div>
+                            <div class="flex justify-between text-slate-500">
+                                <span>Estimated Loss:</span
+                  ><span class="font-bold text-rose-600">145.6 gal/day</span>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-500">
+                                <span>AI Confidence:</span
+                  ><span class="font-bold text-blue-600">94.2%</span>
+                            </div>
+                        </div>
+                        <div class="bar-chart mb-4">
+                            <div class="bar" style="height: 40%"></div>
+                            <div class="bar" style="height: 30%"></div>
+                            <div class="bar" style="height: 20%"></div>
+                            <div class="bar" style="height: 60%"></div>
+                            <div class="bar" style="height: 70%"></div>
+                            <div class="bar" style="height: 90%"></div>
+                            <div class="bar" style="height: 100%"></div>
+                        </div>
+                        <div class="bg-white/80 p-2 rounded-lg text-[9px] text-slate-600 border border-rose-100 italic mb-4">
+                            Continuous water flow detected for 12+ hours. Possible pipe leak.
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-[10px] font-bold">
+                  View Details</button
+                ><button
+                  class="flex-1 bg-emerald-500 text-white py-2 rounded-lg text-[10px] font-bold"
+                >
+                  Mark Resolved
+                </button>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-2xl p-5 relative">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800">Mike Wilson</h4>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase">
+                                    789 Pine Road
+                                </p>
+                            </div>
+                            <span class="text-[8px] font-black text-amber-500 bg-amber-100 px-2 py-0.5 rounded">INVESTIGATING</span
+                >
+              </div>
+              <div class="space-y-2 text-[10px] mb-4">
+                <div class="flex justify-between text-slate-500">
+                  <span>Leak Type:</span
+                  ><span class="font-bold">Abnormal Consumption</span>
+                        </div>
+                        <div class="flex justify-between text-slate-500">
+                            <span>Estimated Loss:</span
+                  ><span class="font-bold text-rose-600">67.3 gal/day</span>
+                        </div>
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span>AI Confidence:</span
+                  ><span class="font-bold text-blue-600">87.5%</span>
+                        </div>
+                    </div>
+                    <div class="bar-chart mb-4">
+                        <div class="bar bg-amber-400" style="height: 20%"></div>
+                        <div class="bar bg-amber-400" style="height: 40%"></div>
+                        <div class="bar bg-amber-400" style="height: 30%"></div>
+                        <div class="bar bg-amber-400" style="height: 50%"></div>
+                        <div class="bar bg-amber-400" style="height: 45%"></div>
+                        <div class="bar bg-amber-400" style="height: 80%"></div>
+                        <div class="bar bg-amber-400" style="height: 95%"></div>
+                    </div>
+                    <div class="bg-white/80 p-2 rounded-lg text-[9px] text-slate-600 border border-amber-100 italic mb-4">
+                        Usage increased by 200% from baseline.
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="flex-1 bg-blue-600 text-white py-2 rounded-lg text-[10px] font-bold">
+                  View Details</button
+                ><button class="bg-amber-500 text-white px-3 rounded-lg">
+                  <i class="fa-solid fa-phone text-[10px]"></i>
+                </button>
+                    </div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-bold text-slate-800">David Brown</h4>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase">
+                                321 Elm Street
+                            </p>
+                        </div>
+                        <span class="text-[8px] font-black text-emerald-500 bg-emerald-100 px-2 py-0.5 rounded">RESOLVED</span
+                >
+              </div>
+              <div class="space-y-2 text-[10px] mb-4">
+                <div class="flex justify-between text-slate-500">
+                  <span>Leak Type:</span
+                  ><span class="font-bold">Night Usage</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500">
+                        <span>Estimated Loss:</span
+                  ><span class="font-bold text-rose-600">23.8 gal/day</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-500">
+                        <span>AI Confidence:</span
+                  ><span class="font-bold text-blue-600">76.8%</span>
+                    </div>
+                </div>
+                <div class="bar-chart mb-4">
+                    <div class="bar bg-slate-300" style="height: 10%"></div>
+                    <div class="bar bg-slate-300" style="height: 20%"></div>
+                    <div class="bar bg-slate-300" style="height: 25%"></div>
+                    <div class="bar bg-slate-300" style="height: 30%"></div>
+                    <div class="bar bg-slate-300" style="height: 20%"></div>
+                    <div class="bar bg-slate-300" style="height: 15%"></div>
+                    <div class="bar bg-slate-300" style="height: 10%"></div>
+                </div>
+                <div class="bg-white/80 p-2 rounded-lg text-[9px] text-slate-600 border border-slate-200 italic mb-4">
+                    Unusual usage during night hours (2-6 AM).
+                </div>
+                <button class="w-full bg-blue-600 text-white py-2 rounded-lg text-[10px] font-bold uppercase">
+                View Details
+              </button>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-100 rounded-2xl p-6">
+            <h4 class="text-xs font-black text-slate-800 uppercase mb-6">
+                AI Detection Parameters
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">
+                        Sensitivity Level
+                    </p>
+                    <div class="space-y-2 text-[11px] font-medium text-slate-600">
+                        <label class="flex items-center gap-2"><input type="radio" name="s" /> High (More alerts)</label
+                  >
+                  <label class="flex items-center gap-2"
+                    ><input type="radio" name="s" checked /> Medium
+                    (Balanced)</label
+                  >
+                  <label class="flex items-center gap-2"
+                    ><input type="radio" name="s" /> Low (Fewer false
+                    positives)</label
+                  >
+                </div>
+              </div>
+              <div>
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest"
+                >
+                  Thresholds
+                </p>
+                <div class="space-y-3">
+                  <input
+                    type="text"
+                    value="Continuous Flow: 6 hrs"
+                    class="w-full bg-slate-50 border p-2 text-xs rounded"
+                  /><input
+                    type="text"
+                    value="Usage Spike: 200%"
+                    class="w-full bg-slate-50 border p-2 text-xs rounded"
+                  />
+                </div>
+              </div>
+              <div>
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest"
+                >
+                  Notifications
+                </p>
+                <div
+                  class="space-y-2 text-[11px] font-medium text-slate-600 mb-4"
+                >
+                  <label class="flex items-center gap-2"
+                    ><input type="checkbox" checked /> Instant alerts for high
+                    severity</label
+                  >
+                  <label class="flex items-center gap-2"
+                    ><input type="checkbox" checked /> Daily summary
+                    reports</label
+                  >
+                </div>
+                <button
+                  class="w-full bg-blue-600 text-white py-2 rounded-lg text-xs font-bold shadow-lg shadow-blue-100"
+                >
+                  Save Configuration
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="workflowModal"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all"
+      >
+        <div
+          class="flex justify-between items-center p-6 border-b border-slate-100"
+        >
+          <h3 class="text-lg font-bold text-slate-800">Create New Workflow</h3>
+          <button
+            onclick="toggleWorkflowModal()"
+            class="text-slate-400 hover:text-slate-600 transition"
+          >
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+        <div class="p-6 max-h-[70vh] overflow-y-auto custom-scroll">
+          <div class="mb-6">
+            <input
+              type="text"
+              placeholder="e.g., Weekly Usage Report"
+              class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none"
+            />
+          </div>
+          <div class="mb-6">
+            <label
+              class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3"
+              >Trigger Type</label
+            >
+            <div class="grid grid-cols-3 gap-3">
+              <button
+                onclick="selectTrigger(this)"
+                class="trigger-card flex flex-col items-start p-4 border-2 border-blue-600 bg-blue-50 rounded-xl text-left"
+              >
+                <i class="fa-solid fa-clock text-blue-600 mb-2"></i
+                ><span class="text-[13px] font-bold">Scheduled</span>
+              </button>
+              <button
+                onclick="selectTrigger(this)"
+                class="trigger-card flex flex-col items-start p-4 border border-slate-200 rounded-xl text-left"
+              >
+                <i class="fa-solid fa-bolt text-slate-400 mb-2"></i
+                ><span class="text-[13px] font-bold">Event-driven</span>
+              </button>
+              <button
+                onclick="selectTrigger(this)"
+                class="trigger-card flex flex-col items-start p-4 border border-slate-200 rounded-xl text-left"
+              >
+                <i class="fa-solid fa-code-branch text-slate-400 mb-2"></i
+                ><span class="text-[13px] font-bold">Condition</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3"
+              >Actions</label
+            >
+            <div
+              class="grid grid-cols-2 gap-3 text-xs font-semibold text-slate-700"
+            >
+              <label class="flex items-center p-3 border rounded-xl"
+                ><input type="checkbox" class="mr-3" /> Generate Bills</label
+              >
+              <label class="flex items-center p-3 border rounded-xl"
+                ><input type="checkbox" class="mr-3" /> Send Email</label
+              >
+              <label class="flex items-center p-3 border rounded-xl"
+                ><input type="checkbox" class="mr-3" /> Send SMS</label
+              >
+              <label class="flex items-center p-3 border rounded-xl"
+                ><input type="checkbox" class="mr-2" /> Process Payment</label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="p-6 border-t bg-slate-50 flex gap-3">
+          <button
+            onclick="toggleWorkflowModal()"
+            class="flex-1 px-4 py-2 border rounded-lg font-bold text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm"
+          >
+            Create Workflow
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showTab(view) {
+        const workflowSection = document.getElementById("workflowSection");
+        const leakSection = document.getElementById("leakSection");
+        const workflowBtn = document.getElementById("workflowBtn");
+        const leakBtn = document.getElementById("leakBtn");
+
+        if (view === "leak") {
+          workflowSection.classList.add("hidden");
+          leakSection.classList.remove("hidden");
+          leakBtn.classList.add("tab-active");
+          workflowBtn.classList.remove("tab-active");
+          workflowBtn.classList.remove(
+            "text-blue-600",
+            "border-b-2",
+            "border-blue-600",
+          );
+        } else {
+          leakSection.classList.add("hidden");
+          workflowSection.classList.remove("hidden");
+          workflowBtn.classList.add("tab-active");
+          leakBtn.classList.remove("tab-active");
+        }
+      }
+
+      function toggleWorkflowModal() {
+        document.getElementById("workflowModal").classList.toggle("hidden");
+      }
+      function selectTrigger(btn) {
+        document
+          .querySelectorAll(".trigger-card")
+          .forEach((c) =>
+            c.classList.replace("border-blue-600", "border-slate-200"),
+          );
+        btn.classList.add("border-blue-600");
+      }
+      function fluctuate() {
+        document.getElementById("pressureVal").innerText = (
+          98 +
+          Math.random() * 4
+        ).toFixed(1);
+        document.getElementById("efficiencyVal").innerText = (
+          94 +
+          Math.random() * 2
+        ).toFixed(1);
+      }
+      setInterval(fluctuate, 2000);
+    </script>
+  </body>
+</html>
